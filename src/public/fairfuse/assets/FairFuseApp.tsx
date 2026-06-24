@@ -17,6 +17,7 @@ function FairFuseApp() {
   const [compressed, setCompressed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [arpThreshold, setArpThreshold] = useState(0.5);
+  const [maxArp, setMaxArp] = useState<number | null>(null);
   const [generatedRankings, setGeneratedRankings] = useState<GeneratedRanking[]>([]);
   const [generating, setGenerating] = useState(false);
   const [similarityMatrix, setSimilarityMatrix] = useState<number[][] | null>(null);
@@ -89,6 +90,15 @@ function FairFuseApp() {
       .then((data) => { setSimilarityMatrix(data); });
   }, [candidates, rankingCols, generatedRankings]);
 
+  useEffect(() => {
+    if (maxArp !== null || generatedRankings.length === 0) return;
+    const firstColName = generatedRankings[0].colName;
+    const arp = colFairnessMap[firstColName]?.arp;
+    if (arp == null) return;
+    setMaxArp(arp);
+    setArpThreshold(arp);
+  }, [colFairnessMap, generatedRankings, maxArp]);
+
   const augmentedCandidates = useMemo(
     () => (generatedRankings.length === 0 ? candidates : candidates.map((c) => ({
       ...c,
@@ -119,7 +129,7 @@ function FairFuseApp() {
       const res = await fetch('http://localhost:8001/consensus', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rankings, groups, arpThreshold }),
+        body: JSON.stringify({ rankings, groups, arpThreshold: maxArp === null ? 1 : arpThreshold }),
       });
       const data = await res.json();
       const rankById: Record<number, number> = {};
@@ -131,7 +141,7 @@ function FairFuseApp() {
     } finally {
       setGenerating(false);
     }
-  }, [candidates, rankingCols, arpThreshold]);
+  }, [candidates, rankingCols, arpThreshold, maxArp]);
 
   const handleConsensusReorder = useCallback((colName: string, newOrderedIds: number[]) => {
     setGeneratedRankings((prev) => prev.map((gr) => {
@@ -160,31 +170,39 @@ function FairFuseApp() {
           display: 'flex', flexDirection: 'column', gap: 16, padding: '12px 10px', borderRight: '1px solid #dee2e6', flexShrink: 0,
         }}
       >
-        <div>
-          <div style={{
-            fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 10,
-          }}
-          >
-            Fairness Threshold:
-            {' '}
-            {(1 - arpThreshold).toFixed(2)}
+        {maxArp !== null && (
+          <div>
+            <div style={{
+              fontSize: 14, fontWeight: 600, color: '#555', marginBottom: 10,
+            }}
+            >
+              Fairness Threshold:
+              {' '}
+              {(1 - arpThreshold).toFixed(2)}
+            </div>
+            <Slider
+              defaultValue={1}
+              min={0}
+              max={1}
+              step={0.01}
+              value={Math.round((1 - arpThreshold) * 100) / 100}
+              onChange={(v) => ((1 - v) < maxArp ? setArpThreshold(1 - v) : (1 - maxArp))}
+              size="md"
+              marks={[
+                { value: parseFloat((1 - maxArp).toFixed(2)), label: 'Min' },
+                { value: 1, label: 'Max' },
+              ]}
+              mb="sm"
+            />
           </div>
-          <Slider
-            min={0}
-            max={1}
-            step={0.01}
-            value={1 - arpThreshold}
-            onChange={(i) => setArpThreshold(1 - i)}
-            size="xs"
-          />
-        </div>
+        )}
         <Button
           size="xs"
           loading={generating}
           disabled={candidates.length === 0}
           onClick={handleGenerateConsensus}
         >
-          Generate Fair Consensus Ranking
+          {maxArp !== null ? 'Generate Fair Consensus Ranking' : 'Generate Consensus Ranking'}
         </Button>
         {similarityMatrix && (
           <div>
