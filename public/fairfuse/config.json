@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/revisit-studies/study/v2.4.1/src/parser/StudyConfigSchema.json",
+  "studyMetadata": {
+    "title": "FairFuse",
+    "version": "pilot",
+    "authors": ["FairFuse"],
+    "date": "2026-02-23",
+    "description": "FairFuse",
+    "organizations": ["WPI"]
+  },
+  "uiConfig": {
+    "contactEmail": "contact@revisit.dev",
+    "helpTextPath": "fairfuse/assets/introduction.md",
+    "logoPath": "revisitAssets/revisitLogoSquare.svg",
+    "withProgressBar": true,
+    "autoDownloadStudy": false,
+    "withSidebar": true
+  },
+  "baseComponents": {
+    "fairfuseApp": {
+      "description": "Test description",
+      "instruction": "This is a test.",
+      "withSidebar": false,
+      "type": "react-component",
+      "path": "fairfuse/assets/FairFuseApp.tsx",
+      "nextButtonLocation": "belowStimulus",
+      "showTitleBar": false,
+      "response": []
+    }
+  },
+  "components": {
+    "introduction": {
+      "type": "markdown",
+      "path": "fairfuse/assets/introduction.md",
+      "response": []
+    },
+    "trialApp": {
+      "baseComponent": "fairfuseApp"
+    }
+  },
+  "sequence": {
+    "order": "fixed",
+    "components": ["introduction", "trialApp"]
+  }
+}
