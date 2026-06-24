@@ -24,6 +24,9 @@ type Props = {
   groupColors: Record<string, string>;
   onReorder?: (colName: string, newOrderedIds: number[]) => void;
   onGroupHover?: (group: string | null) => void;
+  pinnedCols: Set<string>;
+  onPinToggle: (col: string) => void;
+  onDeleteConsensus: (col: string) => void;
 };
 
 function isValidDrop(activeColId: string, gapIdx: number, colList: string[]): boolean {
@@ -42,6 +45,9 @@ function RankingView({
   groupColors,
   onReorder,
   onGroupHover,
+  pinnedCols,
+  onPinToggle,
+  onDeleteConsensus,
 }: Props) {
   const [cols, setCols] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -59,9 +65,12 @@ function RankingView({
 
   useEffect(() => {
     setCols((prev) => {
-      const existing = new Set(prev);
-      const added = initialCols.filter((c) => !existing.has(c));
-      return added.length ? [...prev, ...added] : prev;
+      const initialSet = new Set(initialCols);
+      const kept = prev.filter((c) => initialSet.has(c));
+      const keptSet = new Set(kept);
+      const added = initialCols.filter((c) => !keptSet.has(c));
+      const next = [...kept, ...added];
+      return next.length === prev.length && next.every((c, i) => c === prev[i]) ? prev : next;
     });
   }, [initialCols]);
 
@@ -198,6 +207,9 @@ function RankingView({
                         hoveredGroup={effectiveHoveredGroup}
                         hoveredFpr={hoveredFpr}
                         onDotHover={handleDotHover}
+                        pinned={pinnedCols.has(cols[colIdx])}
+                        onPinToggle={() => onPinToggle(cols[colIdx])}
+                        onDelete={() => onDeleteConsensus(cols[colIdx])}
                       />
                     )}
                 </div>

@@ -5,7 +5,7 @@ export type Candidate = {
   rankings: Record<string, number>;
 };
 
-export type GeneratedRanking = { colName: string; rankById: Record<number, number> };
+export type GeneratedRanking = { colName: string; rankById: Record<number, number>; pinned: boolean };
 
 export type ColFairness = { arp: number; fpr: number[] };
 

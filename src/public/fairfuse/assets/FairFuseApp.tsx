@@ -137,10 +137,16 @@ function FairFuseApp() {
       const data = await res.json();
       const rankById: Record<number, number> = {};
       (data.ranking as number[]).forEach((id, idx) => { rankById[id] = idx + 1; });
-      consensusCountRef.current += 1;
-      const n = consensusCountRef.current;
-      const colName = `#FAIR_${n}`;
-      setGeneratedRankings((prev) => [...prev, { colName, rankById }]);
+      setGeneratedRankings((prev) => {
+        const lastUnpinnedIdx = prev.reduce((acc, gr, i) => (!gr.pinned ? i : acc), -1);
+        if (lastUnpinnedIdx !== -1) {
+          const next = [...prev];
+          next[lastUnpinnedIdx] = { ...next[lastUnpinnedIdx], rankById };
+          return next;
+        }
+        consensusCountRef.current += 1;
+        return [...prev, { colName: `#FAIR_${consensusCountRef.current}`, rankById, pinned: false }];
+      });
     } finally {
       setGenerating(false);
     }
@@ -154,6 +160,19 @@ function FairFuseApp() {
       return { ...gr, rankById };
     }));
   }, []);
+
+  const handlePinToggle = useCallback((colName: string) => {
+    setGeneratedRankings((prev) => prev.map((gr) => (gr.colName === colName ? { ...gr, pinned: !gr.pinned } : gr)));
+  }, []);
+
+  const handleDeleteConsensus = useCallback((colName: string) => {
+    setGeneratedRankings((prev) => prev.filter((gr) => gr.colName !== colName));
+  }, []);
+
+  const pinnedCols = useMemo(
+    () => new Set(generatedRankings.filter((gr) => gr.pinned).map((gr) => gr.colName)),
+    [generatedRankings],
+  );
 
   const heatmapLabels = useMemo(() => [
     ...rankingCols.map((_, i) => `R${i + 1}`),
@@ -301,6 +320,9 @@ function FairFuseApp() {
             groupColors={groupColors}
             onReorder={handleConsensusReorder}
             onGroupHover={setHoveredGroup}
+            pinnedCols={pinnedCols}
+            onPinToggle={handlePinToggle}
+            onDeleteConsensus={handleDeleteConsensus}
           />
         </Box>
       </Box>

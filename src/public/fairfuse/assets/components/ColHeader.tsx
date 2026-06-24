@@ -1,6 +1,8 @@
 import { memo, useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { IconGripVertical } from '@tabler/icons-react';
+import {
+  IconGripVertical, IconPin, IconPinFilled, IconTrash,
+} from '@tabler/icons-react';
 import {
   HEADER_H, LABEL_H, GROUP_FAIRNESS_VIEW_H, GROUP_FAIRNESS_VIEW_W,
 } from '../constants';
@@ -17,10 +19,14 @@ type Props = {
   hoveredGroup: string | null;
   hoveredFpr: number | null;
   onDotHover: (group: string | null, fpr: number | null) => void;
+  pinned?: boolean;
+  onPinToggle?: () => void;
+  onDelete?: () => void;
 };
 
 function ColHeader({
   col, colW, compressed, colFairness, candidates, groupLabels, groupColors, hoveredGroup, hoveredFpr, onDotHover,
+  pinned, onPinToggle, onDelete,
 }: Props) {
   const [arpHovered, setArpHovered] = useState(false);
   const label = col.startsWith('#FAIR_')
@@ -43,7 +49,7 @@ function ColHeader({
       }}
     >
       <div style={{
-        height: LABEL_H, display: 'flex', alignItems: 'center', paddingLeft: compressed ? 2 : 4, gap: 4, justifyContent: compressed ? 'center' : undefined,
+        height: LABEL_H, display: 'flex', alignItems: 'center', paddingLeft: 0, gap: 1, justifyContent: compressed ? 'center' : undefined,
       }}
       >
         <button
@@ -68,7 +74,7 @@ function ColHeader({
         {!compressed && (
           <span
             style={{
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: 600,
               color: '#555',
               overflow: 'hidden',
@@ -80,6 +86,44 @@ function ColHeader({
           >
             {label}
           </span>
+        )}
+        {!compressed && col.startsWith('#FAIR_') && (
+          <>
+            <button
+              type="button"
+              onClick={onPinToggle}
+              style={{
+                border: 'none',
+                background: 'none',
+                padding: 2,
+                cursor: 'pointer',
+                color: pinned ? '#4c78a8' : '#aaa',
+                display: 'flex',
+                alignItems: 'center',
+                flexShrink: 0,
+              }}
+              title={pinned ? 'Unpin' : 'Pin'}
+            >
+              {pinned ? <IconPinFilled size={14} /> : <IconPin size={14} />}
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              style={{
+                border: 'none',
+                background: 'none',
+                padding: 2,
+                cursor: 'pointer',
+                color: '#aaa',
+                display: 'flex',
+                alignItems: 'center',
+                flexShrink: 0,
+              }}
+              title="Delete"
+            >
+              <IconTrash size={14} />
+            </button>
+          </>
         )}
       </div>
       <div
