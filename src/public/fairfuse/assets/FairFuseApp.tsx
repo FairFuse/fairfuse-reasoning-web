@@ -21,6 +21,7 @@ function FairFuseApp() {
   const [maxArp, setMaxArp] = useState<number | null>(null);
   const [generatedRankings, setGeneratedRankings] = useState<GeneratedRanking[]>([]);
   const [generating, setGenerating] = useState(false);
+  const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
   const [similarityMatrix, setSimilarityMatrix] = useState<number[][] | null>(null);
   const [colFairnessMap, setColFairnessMap] = useState<Record<string, ColFairness>>({});
   const consensusCountRef = useRef(0);
@@ -220,18 +221,34 @@ function FairFuseApp() {
 
         {groupLabels.length > 0 && (
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8 }}>
+            <div style={{
+              fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8,
+            }}
+            >
               {protectedAttr}
             </div>
-            {groupLabels.map((label) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
-                <div style={{
-                  width: 18, height: 18, borderRadius: 3, flexShrink: 0, backgroundColor: groupColors[label] ?? '#999',
-                }}
-                />
-                <span style={{ fontSize: 13, color: '#333' }}>{label}</span>
-              </div>
-            ))}
+            {groupLabels.map((label) => {
+              const dimmed = hoveredGroup !== null && hoveredGroup !== label;
+              return (
+                <div
+                  key={label}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 5,
+                    opacity: dimmed ? 0.25 : 1,
+                    transition: 'opacity 0.15s',
+                  }}
+                >
+                  <div style={{
+                    width: 18, height: 18, borderRadius: 3, flexShrink: 0, backgroundColor: groupColors[label] ?? '#999',
+                  }}
+                  />
+                  <span style={{ fontSize: 13, color: '#333' }}>{label}</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </Box>
@@ -283,6 +300,7 @@ function FairFuseApp() {
             groupLabels={groupLabels}
             groupColors={groupColors}
             onReorder={handleConsensusReorder}
+            onGroupHover={setHoveredGroup}
           />
         </Box>
       </Box>

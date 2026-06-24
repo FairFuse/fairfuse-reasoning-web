@@ -23,6 +23,7 @@ type Props = {
   groupLabels: string[];
   groupColors: Record<string, string>;
   onReorder?: (colName: string, newOrderedIds: number[]) => void;
+  onGroupHover?: (group: string | null) => void;
 };
 
 function isValidDrop(activeColId: string, gapIdx: number, colList: string[]): boolean {
@@ -40,6 +41,7 @@ function RankingView({
   groupLabels,
   groupColors,
   onReorder,
+  onGroupHover,
 }: Props) {
   const [cols, setCols] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -88,6 +90,8 @@ function RankingView({
   useEffect(() => { virtualizer.measure(); }, [colW, rowH, boundaryVIdx]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  useEffect(() => { onGroupHover?.(effectiveHoveredGroup); }, [effectiveHoveredGroup]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleHover = useCallback((id: number | null, col: string | null) => {
     setHoveredId(id);
