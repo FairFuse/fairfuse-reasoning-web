@@ -22,6 +22,7 @@ function FairFuseApp() {
   const [generatedRankings, setGeneratedRankings] = useState<GeneratedRanking[]>([]);
   const [generating, setGenerating] = useState(false);
   const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
+  const [displayedCols, setDisplayedCols] = useState<string[]>([]);
   const [similarityMatrix, setSimilarityMatrix] = useState<number[][] | null>(null);
   const [colFairnessMap, setColFairnessMap] = useState<Record<string, ColFairness>>({});
   const consensusCountRef = useRef(0);
@@ -174,10 +175,21 @@ function FairFuseApp() {
     [generatedRankings],
   );
 
-  const heatmapLabels = useMemo(() => [
-    ...rankingCols.map((_, i) => `R${i + 1}`),
-    ...generatedRankings.map((_, i) => `C${i + 1}`),
-  ], [rankingCols, generatedRankings]);
+  const heatmapLabels = useMemo(() => displayedCols.map((col) => (col.startsWith('#FAIR_')
+    ? `Consensus ${col.slice(6)}`
+    : col.replace(/^#R/, '').replace(/_/g, ' ').trim())), [displayedCols]);
+
+  const displayedMatrix = useMemo(() => {
+    if (!similarityMatrix || displayedCols.length === 0) return null;
+    const baseIdx = Object.fromEntries(allRankingCols.map((col, i) => [col, i]));
+    return displayedCols.map((rowCol) => displayedCols.map((colCol) => {
+      const r = baseIdx[rowCol] ?? -1;
+      const c = baseIdx[colCol] ?? -1;
+      return r !== -1 && c !== -1 && r < similarityMatrix.length && c < similarityMatrix[r].length
+        ? similarityMatrix[r][c]
+        : 0;
+    }));
+  }, [similarityMatrix, displayedCols, allRankingCols]);
 
   const searchedId = searchQuery.trim()
     ? (candidates.find((c) => c.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))?.id ?? null)
@@ -226,7 +238,7 @@ function FairFuseApp() {
         >
           {maxArp !== null ? 'Generate Fair Consensus Ranking' : 'Generate Consensus Ranking'}
         </Button>
-        {similarityMatrix && (
+        {displayedMatrix && (
           <div>
             <div style={{
               fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 6,
@@ -234,7 +246,7 @@ function FairFuseApp() {
             >
               Similarity
             </div>
-            <SimilarityHeatmap matrix={similarityMatrix} labels={heatmapLabels} />
+            <SimilarityHeatmap matrix={displayedMatrix} labels={heatmapLabels} />
           </div>
         )}
 
@@ -323,6 +335,7 @@ function FairFuseApp() {
             pinnedCols={pinnedCols}
             onPinToggle={handlePinToggle}
             onDeleteConsensus={handleDeleteConsensus}
+            onColsChange={setDisplayedCols}
           />
         </Box>
       </Box>

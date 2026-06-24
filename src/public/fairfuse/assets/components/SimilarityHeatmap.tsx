@@ -12,6 +12,8 @@ function SimilarityHeatmap({ matrix, labels }: Props) {
   const svgW = labelW + gridW;
   const svgH = labelW + gridW;
 
+  console.log(matrix, labels);
+
   return (
     <svg width={svgW} height={svgH} style={{ display: 'block' }}>
       {labels.map((lbl, i) => (

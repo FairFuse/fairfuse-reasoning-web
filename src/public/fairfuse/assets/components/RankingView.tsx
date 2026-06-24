@@ -27,6 +27,7 @@ type Props = {
   pinnedCols: Set<string>;
   onPinToggle: (col: string) => void;
   onDeleteConsensus: (col: string) => void;
+  onColsChange?: (cols: string[]) => void;
 };
 
 function isValidDrop(activeColId: string, gapIdx: number, colList: string[]): boolean {
@@ -48,6 +49,7 @@ function RankingView({
   pinnedCols,
   onPinToggle,
   onDeleteConsensus,
+  onColsChange,
 }: Props) {
   const [cols, setCols] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -73,6 +75,8 @@ function RankingView({
       return next.length === prev.length && next.every((c, i) => c === prev[i]) ? prev : next;
     });
   }, [initialCols]);
+
+  useEffect(() => { onColsChange?.(cols); }, [cols]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const colW = compressed ? COL_W_COMPRESSED : COL_W_NORMAL;
   const rowH = compressed ? ROW_H_COMPRESSED : ROW_H;
