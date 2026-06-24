@@ -188,6 +188,7 @@ function RankingView({
                         colW={colW}
                         compressed={compressed}
                         colFairness={colFairnessMap[cols[colIdx]]}
+                        candidates={candidates}
                         groupLabels={groupLabels}
                         groupColors={groupColors}
                         hoveredGroup={effectiveHoveredGroup}

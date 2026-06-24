@@ -4,13 +4,14 @@ import { IconGripVertical } from '@tabler/icons-react';
 import {
   HEADER_H, LABEL_H, GROUP_FAIRNESS_VIEW_H, GROUP_FAIRNESS_VIEW_W,
 } from '../constants';
-import type { ColFairness } from '../types';
+import type { Candidate, ColFairness } from '../types';
 
 type Props = {
   col: string;
   colW: number;
   compressed: boolean;
   colFairness?: ColFairness;
+  candidates: Candidate[];
   groupLabels: string[];
   groupColors: Record<string, string>;
   hoveredGroup: string | null;
@@ -19,7 +20,7 @@ type Props = {
 };
 
 function ColHeader({
-  col, colW, compressed, colFairness, groupLabels, groupColors, hoveredGroup, hoveredFpr, onDotHover,
+  col, colW, compressed, colFairness, candidates, groupLabels, groupColors, hoveredGroup, hoveredFpr, onDotHover,
 }: Props) {
   const [arpHovered, setArpHovered] = useState(false);
   const label = col.startsWith('#FAIR_')
@@ -103,6 +104,8 @@ function ColHeader({
           const n = colFairness.fpr.length;
           const dotX = (i: number) => (n === 1 ? svgW / 2 : 20 + (i / (n - 1)) * (svgW - 40));
           const DOT_R = 5;
+          const totalInCol = candidates.filter((c) => col in c.rankings).length;
+          const rankToY = (rank: number) => marginV + ((rank - 1) / Math.max(1, totalInCol - 1)) * totalH;
           return (
             <svg width={svgW} height={svgH} style={{ display: 'block', overflow: 'visible' }}>
               <rect
@@ -160,6 +163,10 @@ function ColHeader({
                 const color = groupColors[groupLabels[i]] ?? '#999';
                 const isHighlighted = groupLabels[i] === hoveredGroup;
                 const r = isHighlighted ? DOT_R + 3 : DOT_R;
+                const groupCandidates = candidates.filter(
+                  (c) => c.region === groupLabels[i] && col in c.rankings,
+                );
+                const stripX = x - (DOT_R + 2 + 4);
                 return (
                   <g key={i}>
                     <line
@@ -190,6 +197,21 @@ function ColHeader({
                         {fpr.toFixed(3)}
                       </title>
                     </circle>
+                    {groupCandidates.map((c) => {
+                      const ry = rankToY(c.rankings[col]);
+                      return (
+                        <rect
+                          key={c.id}
+                          x={stripX}
+                          y={ry - 1}
+                          width={4}
+                          height={2}
+                          fill={color}
+                          opacity={0.7}
+                          pointerEvents="none"
+                        />
+                      );
+                    })}
                   </g>
                 );
               })}
