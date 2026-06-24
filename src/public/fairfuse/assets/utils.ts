@@ -12,7 +12,7 @@ export function generateGroupColors(labels: string[]): Record<string, string> {
   return Object.fromEntries(labels.map((label, i) => [label, PALETTE[i % PALETTE.length]]));
 }
 
-export function parseCsv(text: string): { candidates: Candidate[]; rankingCols: string[] } {
+export function parseCsv(text: string): { candidates: Candidate[]; rankingCols: string[]; protectedAttr: string } {
   const lines = text.trim().split('\n');
   const headers = lines[0].split(',').map((h) => h.replace(/^"|"$/g, '').trim());
 
@@ -65,5 +65,8 @@ export function parseCsv(text: string): { candidates: Candidate[]; rankingCols: 
     };
   });
 
-  return { candidates, rankingCols };
+  const protectedAttr = protectedCol
+    ? protectedCol.slice(1).replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    : 'Group';
+  return { candidates, rankingCols, protectedAttr };
 }

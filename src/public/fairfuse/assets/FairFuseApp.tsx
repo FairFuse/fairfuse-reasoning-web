@@ -14,6 +14,7 @@ import SimilarityHeatmap from './components/SimilarityHeatmap';
 function FairFuseApp() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [rankingCols, setRankingCols] = useState<string[]>([]);
+  const [protectedAttr, setProtectedAttr] = useState('Group');
   const [compressed, setCompressed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [arpThreshold, setArpThreshold] = useState(0.5);
@@ -36,9 +37,10 @@ function FairFuseApp() {
     fetch(CSV_URL)
       .then((r) => r.text())
       .then((text) => {
-        const { candidates: c, rankingCols: rc } = parseCsv(text);
+        const { candidates: c, rankingCols: rc, protectedAttr: pa } = parseCsv(text);
         setCandidates(c);
         setRankingCols(rc);
+        setProtectedAttr(pa);
       });
   }, []);
 
@@ -213,6 +215,23 @@ function FairFuseApp() {
               Similarity
             </div>
             <SimilarityHeatmap matrix={similarityMatrix} labels={heatmapLabels} />
+          </div>
+        )}
+
+        {groupLabels.length > 0 && (
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8 }}>
+              {protectedAttr}
+            </div>
+            {groupLabels.map((label) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                <div style={{
+                  width: 18, height: 18, borderRadius: 3, flexShrink: 0, backgroundColor: groupColors[label] ?? '#999',
+                }}
+                />
+                <span style={{ fontSize: 13, color: '#333' }}>{label}</span>
+              </div>
+            ))}
           </div>
         )}
       </Box>
