@@ -175,9 +175,25 @@ function FairFuseApp() {
     [generatedRankings],
   );
 
-  const heatmapLabels = useMemo(() => displayedCols.map((col) => (col.startsWith('#FAIR_')
-    ? `Consensus ${col.slice(6)}`
-    : col.replace(/^#R/, '').replace(/_/g, ' ').trim())), [displayedCols]);
+  const baseDisplayedCols = useMemo(
+    () => displayedCols.filter((c) => !c.startsWith('#FAIR_')),
+    [displayedCols],
+  );
+
+  const consensusDisplayedCols = useMemo(
+    () => displayedCols.filter((c) => c.startsWith('#FAIR_')),
+    [displayedCols],
+  );
+
+  const baseHeatmapLabels = useMemo(
+    () => baseDisplayedCols.map((col) => col.replace(/^#R/, '').replace(/_/g, ' ').trim()),
+    [baseDisplayedCols],
+  );
+
+  const consensusHeatmapLabels = useMemo(
+    () => consensusDisplayedCols.map((col) => `Consensus ${col.slice(6)}`),
+    [consensusDisplayedCols],
+  );
 
   const displayedMatrix = useMemo(() => {
     if (!similarityMatrix || displayedCols.length === 0) return null;
@@ -190,6 +206,21 @@ function FairFuseApp() {
         : 0;
     }));
   }, [similarityMatrix, displayedCols, allRankingCols]);
+
+  const nBase = baseDisplayedCols.length;
+  const baseMatrix = useMemo(
+    () => displayedMatrix?.slice(0, nBase).map((row) => row.slice(0, nBase)) ?? null,
+    [displayedMatrix, nBase],
+  );
+  const crossMatrix = useMemo(() => {
+    if (!displayedMatrix || consensusDisplayedCols.length === 0) return null;
+    return displayedMatrix.slice(0, nBase).map((row) => row.slice(nBase));
+  }, [displayedMatrix, nBase, consensusDisplayedCols.length]);
+
+  const sharedCellSize = useMemo(
+    () => (nBase > 0 ? Math.max(4, Math.floor((270 - 100) / nBase)) : 20),
+    [nBase],
+  );
 
   const searchedId = searchQuery.trim()
     ? (candidates.find((c) => c.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))?.id ?? null)
@@ -238,7 +269,7 @@ function FairFuseApp() {
         >
           {maxArp !== null ? 'Generate Fair Consensus Ranking' : 'Generate Consensus Ranking'}
         </Button>
-        {displayedMatrix && (
+        {baseMatrix && (
           <div>
             <div style={{
               fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 6,
@@ -246,7 +277,21 @@ function FairFuseApp() {
             >
               Similarity
             </div>
-            <SimilarityHeatmap matrix={displayedMatrix} labels={heatmapLabels} />
+            <div style={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+              <SimilarityHeatmap
+                matrix={baseMatrix}
+                labels={baseHeatmapLabels}
+                cellSize={sharedCellSize}
+              />
+              {crossMatrix && (
+                <SimilarityHeatmap
+                  matrix={crossMatrix}
+                  labels={consensusHeatmapLabels}
+                  cellSize={sharedCellSize}
+                  hideRowLabels
+                />
+              )}
+            </div>
           </div>
         )}
 

@@ -1,38 +1,45 @@
 import { memo } from 'react';
 import { cellColor } from '../utils';
 
-type Props = { matrix: number[][]; labels: string[] };
+type Props = {
+  matrix: number[][];
+  labels: string[];
+  hideRowLabels?: boolean;
+  cellSize?: number;
+};
 
-function SimilarityHeatmap({ matrix, labels }: Props) {
+function SimilarityHeatmap({
+  matrix, labels, hideRowLabels, cellSize: cellSizeProp,
+}: Props) {
   const n = labels.length;
+  const nRows = matrix.length;
   const labelW = 100;
   const totalW = 270;
-  const cellSize = Math.max(4, Math.floor((totalW - labelW) / n));
+  const rowLabelW = hideRowLabels ? 0 : labelW;
+  const topLabelH = labelW;
+  const cellSize = cellSizeProp ?? Math.max(4, Math.floor((totalW - rowLabelW) / n));
   const gridW = cellSize * n;
-  const svgW = labelW + gridW;
-  const svgH = labelW + gridW;
-
-  console.log(matrix, labels);
-  console.log(svgW);
+  const svgW = rowLabelW + gridW;
+  const svgH = topLabelH + cellSize * nRows;
 
   return (
     <svg width={svgW} height={svgH} style={{ display: 'block' }}>
-      {labels.map((lbl, i) => (
+      {!hideRowLabels && matrix.map((_, i) => (
         <text
           key={`rl-${i}`}
-          x={labelW - 2}
-          y={labelW + i * cellSize + cellSize / 2 + 3}
+          x={rowLabelW - 2}
+          y={topLabelH + i * cellSize + cellSize / 2 + 3}
           textAnchor="end"
           fontSize={14}
           fill="#888"
         >
-          {lbl}
+          {labels[i]}
         </text>
       ))}
       {labels.map((lbl, j) => (
         <text
           key={`cl-${j}`}
-          transform={`translate(${labelW + j * cellSize + cellSize / 2}, ${labelW - 3}) rotate(-90)`}
+          transform={`translate(${rowLabelW + j * cellSize + cellSize / 2}, ${topLabelH - 3}) rotate(-90)`}
           textAnchor="start"
           fontSize={14}
           fill="#888"
@@ -43,13 +50,13 @@ function SimilarityHeatmap({ matrix, labels }: Props) {
       {matrix.map((row, i) => row.map((v, j) => (
         <rect
           key={`${i}-${j}`}
-          x={labelW + j * cellSize}
-          y={labelW + i * cellSize}
+          x={rowLabelW + j * cellSize}
+          y={topLabelH + i * cellSize}
           width={cellSize}
           height={cellSize}
           fill={cellColor(v)}
         >
-          <title>{`${labels[i]} vs ${labels[j]}: ${v.toFixed(2)}`}</title>
+          <title>{`${labels[i] ?? i} vs ${labels[j]}: ${v.toFixed(2)}`}</title>
         </rect>
       )))}
     </svg>
