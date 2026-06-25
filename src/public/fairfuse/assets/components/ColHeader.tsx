@@ -22,11 +22,12 @@ type Props = {
   pinned?: boolean;
   onPinToggle?: () => void;
   onDelete?: () => void;
+  highlighted?: boolean;
 };
 
 function ColHeader({
   col, colW, compressed, colFairness, candidates, groupLabels, groupColors, hoveredGroup, hoveredFpr, onDotHover,
-  pinned, onPinToggle, onDelete,
+  pinned, onPinToggle, onDelete, highlighted,
 }: Props) {
   const [arpHovered, setArpHovered] = useState(false);
   const label = col.startsWith('#FAIR_')
@@ -42,8 +43,9 @@ function ColHeader({
       style={{
         width: colW,
         height: HEADER_H,
-        backgroundColor: 'white',
+        backgroundColor: highlighted ? 'rgba(76,120,168,0.08)' : 'white',
         borderBottom: '2px solid #dee2e6',
+        transition: 'background-color 0.1s',
         opacity: isDragging ? 0.4 : 1,
         boxSizing: 'border-box',
       }}

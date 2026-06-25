@@ -4,7 +4,7 @@ import type { ColBodyProps } from '../types';
 import ConsensusColBody from './ConsensusColBody';
 
 function ColBody({
-  col, colW, compressed, rowH, candidates, hoveredId, hoveredCol, hoveredGroup, onHover, onReorder, groupColors,
+  col, colW, compressed, rowH, candidates, hoveredId, hoveredCol, hoveredGroup, onHover, onReorder, groupColors, highlighted,
 }: ColBodyProps) {
   // useMemo must be called unconditionally before any early return
   const sorted = useMemo(
@@ -26,6 +26,7 @@ function ColBody({
         onHover={onHover}
         onReorder={onReorder}
         groupColors={groupColors}
+        highlighted={highlighted}
       />
     );
   }
@@ -56,7 +57,7 @@ function ColBody({
               fontSize: 14,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              backgroundColor: isHovered ? '#e8f0fe' : 'white',
+              backgroundColor: isHovered ? '#e8f0fe' : highlighted ? 'rgba(76,120,168,0.07)' : 'white',
               fontWeight: isHovered ? 600 : 400,
               cursor: 'default',
               zIndex: expandHover ? 1 : undefined,

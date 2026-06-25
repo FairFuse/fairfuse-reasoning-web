@@ -28,6 +28,7 @@ type Props = {
   onPinToggle: (col: string) => void;
   onDeleteConsensus: (col: string) => void;
   onColsChange?: (cols: string[]) => void;
+  highlightedCols?: Set<string>;
 };
 
 function isValidDrop(activeColId: string, gapIdx: number, colList: string[]): boolean {
@@ -50,6 +51,7 @@ function RankingView({
   onPinToggle,
   onDeleteConsensus,
   onColsChange,
+  highlightedCols,
 }: Props) {
   const [cols, setCols] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -214,6 +216,7 @@ function RankingView({
                         pinned={pinnedCols.has(cols[colIdx])}
                         onPinToggle={() => onPinToggle(cols[colIdx])}
                         onDelete={() => onDeleteConsensus(cols[colIdx])}
+                        highlighted={highlightedCols?.has(cols[colIdx])}
                       />
                     )}
                 </div>
@@ -262,6 +265,7 @@ function RankingView({
                       onHover={handleHover}
                       onReorder={onReorder}
                       groupColors={groupColors}
+                      highlighted={highlightedCols?.has(cols[colIdx])}
                     />
                   )}
                 </div>

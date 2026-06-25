@@ -21,4 +21,5 @@ export type ColBodyProps = {
   groupColors: Record<string, string>;
   onHover: (id: number | null, col: string | null) => void;
   onReorder?: (colName: string, newOrderedIds: number[]) => void;
+  highlighted?: boolean;
 };

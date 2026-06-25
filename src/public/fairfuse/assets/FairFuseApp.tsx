@@ -9,7 +9,7 @@ import { CSV_URL } from './constants';
 import type { Candidate, ColFairness, GeneratedRanking } from './types';
 import { generateGroupColors, parseCsv } from './utils';
 import RankingView from './components/RankingView';
-import SimilarityHeatmap from './components/SimilarityHeatmap';
+import SimilarityHeatmapPair from './components/SimilarityHeatmapPair';
 
 function FairFuseApp() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -23,6 +23,7 @@ function FairFuseApp() {
   const [generating, setGenerating] = useState(false);
   const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
   const [displayedCols, setDisplayedCols] = useState<string[]>([]);
+  const [hoveredHeatmapCols, setHoveredHeatmapCols] = useState<[string, string] | null>(null);
   const [similarityMatrix, setSimilarityMatrix] = useState<number[][] | null>(null);
   const [colFairnessMap, setColFairnessMap] = useState<Record<string, ColFairness>>({});
   const consensusCountRef = useRef(0);
@@ -166,6 +167,10 @@ function FairFuseApp() {
     setGeneratedRankings((prev) => prev.map((gr) => (gr.colName === colName ? { ...gr, pinned: !gr.pinned } : gr)));
   }, []);
 
+  const handleHeatmapHoverCols = useCallback((cols: [string, string] | null) => {
+    setHoveredHeatmapCols(cols);
+  }, []);
+
   const handleDeleteConsensus = useCallback((colName: string) => {
     setGeneratedRankings((prev) => prev.filter((gr) => gr.colName !== colName));
   }, []);
@@ -208,6 +213,8 @@ function FairFuseApp() {
   }, [similarityMatrix, displayedCols, allRankingCols]);
 
   const nBase = baseDisplayedCols.length;
+  const nConsensus = consensusDisplayedCols.length;
+
   const baseMatrix = useMemo(
     () => displayedMatrix?.slice(0, nBase).map((row) => row.slice(0, nBase)) ?? null,
     [displayedMatrix, nBase],
@@ -218,8 +225,8 @@ function FairFuseApp() {
   }, [displayedMatrix, nBase, consensusDisplayedCols.length]);
 
   const sharedCellSize = useMemo(
-    () => (nBase > 0 ? Math.max(4, Math.floor((270 - 100) / nBase)) : 20),
-    [nBase],
+    () => ((nBase + nConsensus) > 0 ? Math.max(4, Math.floor((270 - 100) / (nBase + nConsensus))) : 20),
+    [nBase, nConsensus],
   );
 
   const searchedId = searchQuery.trim()
@@ -277,22 +284,16 @@ function FairFuseApp() {
             >
               Similarity
             </div>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-              <SimilarityHeatmap
-                matrix={baseMatrix}
-                labels={baseHeatmapLabels}
-                cellSize={sharedCellSize}
-                reverseDiagonal
-              />
-              {crossMatrix && (
-                <SimilarityHeatmap
-                  matrix={crossMatrix}
-                  labels={consensusHeatmapLabels}
-                  cellSize={sharedCellSize}
-                  hideRowLabels
-                />
-              )}
-            </div>
+            <SimilarityHeatmapPair
+              baseMatrix={baseMatrix}
+              baseLabels={baseHeatmapLabels}
+              baseColNames={baseDisplayedCols}
+              crossMatrix={crossMatrix}
+              crossLabels={consensusHeatmapLabels}
+              crossColNames={consensusDisplayedCols}
+              cellSize={sharedCellSize}
+              onHoverCols={handleHeatmapHoverCols}
+            />
           </div>
         )}
 
@@ -382,6 +383,7 @@ function FairFuseApp() {
             onPinToggle={handlePinToggle}
             onDeleteConsensus={handleDeleteConsensus}
             onColsChange={setDisplayedCols}
+            highlightedCols={hoveredHeatmapCols ? new Set(hoveredHeatmapCols) : undefined}
           />
         </Box>
       </Box>

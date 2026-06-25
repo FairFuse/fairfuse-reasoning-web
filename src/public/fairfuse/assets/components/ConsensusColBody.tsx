@@ -8,7 +8,7 @@ import type { ColBodyProps } from '../types';
 import SortableCandidateRow from './SortableCandidateRow';
 
 function ConsensusColBody({
-  col, colW, compressed, rowH, candidates, hoveredId, hoveredCol, hoveredGroup, onHover, onReorder, groupColors,
+  col, colW, compressed, rowH, candidates, hoveredId, hoveredCol, hoveredGroup, onHover, onReorder, groupColors, highlighted,
 }: ColBodyProps) {
   const sorted = useMemo(
     () => [...candidates].sort((a, b) => a.rankings[col] - b.rankings[col]),
@@ -25,7 +25,7 @@ function ConsensusColBody({
   }, [sorted, col, onReorder]);
 
   return (
-    <div style={{ width: colW, height: candidates.length * rowH, position: 'relative' }}>
+    <div style={{ width: colW, height: candidates.length * rowH, position: 'relative', backgroundColor: highlighted ? 'rgba(76,120,168,0.07)' : undefined }}>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={sorted.map((c) => c.id)} strategy={verticalListSortingStrategy}>
           {sorted.map((c, idx) => {
