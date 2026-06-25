@@ -22,7 +22,7 @@ type Props = {
 const ROW_LABEL_W = 100;
 const TOP_LABEL_H = 100;
 const MATRIX_GAP = 8;
-const LEGEND_MARGIN_TOP = 10;
+const LEGEND_MARGIN_TOP = 20;
 const LEGEND_BAR_H = 12;
 const LEGEND_LABEL_H = 16;
 const LEGEND_H = LEGEND_MARGIN_TOP + LEGEND_BAR_H + LEGEND_LABEL_H;
@@ -53,7 +53,7 @@ function SimilarityHeatmapPair({
 
   const leftGridW = cellSize * nBase;
   const rightGridW = hasCross ? cellSize * nCross : 0;
-  const svgW = ROW_LABEL_W + leftGridW + (hasCross ? MATRIX_GAP + rightGridW : 0);
+  const svgW = ROW_LABEL_W + leftGridW + (hasCross ? MATRIX_GAP + rightGridW : 0) + 5;
   const svgH = TOP_LABEL_H + cellSize * nBase + LEGEND_H;
 
   const legendX = ROW_LABEL_W;
@@ -78,7 +78,7 @@ function SimilarityHeatmapPair({
   };
 
   const markerX = hoveredCell && maxValue > 0
-    ? legendX + (hoveredCell.v / maxValue) * legendW
+    ? legendX + (1 - (hoveredCell.v) / maxValue) * legendW
     : null;
 
   const markerAnchor = (mx: number): 'start' | 'middle' | 'end' => {
@@ -91,8 +91,8 @@ function SimilarityHeatmapPair({
     <svg width={svgW} height={svgH} style={{ display: 'block' }} onMouseLeave={handleSvgLeave}>
       <defs>
         <linearGradient id="sim-grad" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stopColor={colorScale(0)} />
-          <stop offset="100%" stopColor={colorScale(maxValue)} />
+          <stop offset="0%" stopColor={colorScale(maxValue)} />
+          <stop offset="100%" stopColor={colorScale(0)} />
         </linearGradient>
       </defs>
 
@@ -146,6 +146,7 @@ function SimilarityHeatmapPair({
             key={`b-${i}-${j}`}
             x={cx}
             y={cy}
+            stroke="#000"
             width={cellSize}
             height={cellSize}
             fill={colorScale(v)}
@@ -169,6 +170,7 @@ function SimilarityHeatmapPair({
             key={`c-${i}-${j}`}
             x={cx}
             y={cy}
+            stroke="#000"
             width={cellSize}
             height={cellSize}
             fill={colorScale(v)}
@@ -195,9 +197,11 @@ function SimilarityHeatmapPair({
       />
 
       {/* Legend end labels */}
-      <text x={legendX} y={legendLabelY} textAnchor="start" fontSize={10} fill="#888">0%</text>
+      <text x={legendX} y={legendLabelY} textAnchor="start" fontSize={10} fill="#888">
+        {`${Math.round((1 - maxValue) * 100)}%`}
+      </text>
       <text x={legendX + legendW} y={legendLabelY} textAnchor="end" fontSize={10} fill="#888">
-        {`${Math.round(maxValue * 100)}%`}
+        100%
       </text>
 
       {/* Legend marker + inline percentage */}
@@ -214,14 +218,14 @@ function SimilarityHeatmapPair({
           />
           <text
             x={markerX}
-            y={legendLabelY}
+            y={legendLabelY - LEGEND_BAR_H - 20}
             textAnchor={markerAnchor(markerX)}
             fontSize={10}
             fontWeight={600}
             fill="#333"
             pointerEvents="none"
           >
-            {`${Math.round(hoveredCell.v * 100)}%`}
+            {`${Math.round((1 - hoveredCell.v) * 100)}%`}
           </text>
         </>
       )}
