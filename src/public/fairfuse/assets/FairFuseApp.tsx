@@ -199,7 +199,7 @@ function FairFuseApp() {
     <Box h="calc(100vh - 80px)" style={{ display: 'flex' }}>
       {/* Sidebar */}
       <Box
-        w={300}
+        w={400}
         style={{
           display: 'flex', flexDirection: 'column', gap: 16, padding: '12px 10px', borderRight: '1px solid #dee2e6', flexShrink: 0,
         }}
