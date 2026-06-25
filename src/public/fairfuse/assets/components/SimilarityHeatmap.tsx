@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { cellColor } from '../utils';
 
 type Props = {
@@ -6,10 +6,11 @@ type Props = {
   labels: string[];
   hideRowLabels?: boolean;
   cellSize?: number;
+  reverseDiagonal?: boolean;
 };
 
 function SimilarityHeatmap({
-  matrix, labels, hideRowLabels, cellSize: cellSizeProp,
+  matrix, labels, hideRowLabels, cellSize: cellSizeProp, reverseDiagonal,
 }: Props) {
   const n = labels.length;
   const nRows = matrix.length;
@@ -21,6 +22,8 @@ function SimilarityHeatmap({
   const gridW = cellSize * n;
   const svgW = rowLabelW + gridW;
   const svgH = topLabelH + cellSize * nRows;
+
+  const labelsReversed = useMemo(() => labels.toReversed(), [labels]);
 
   return (
     <svg width={svgW} height={svgH} style={{ display: 'block' }}>
@@ -36,7 +39,7 @@ function SimilarityHeatmap({
           {labels[i]}
         </text>
       ))}
-      {labels.map((lbl, j) => (
+      {(reverseDiagonal ? labelsReversed : labels).map((lbl, j) => (
         <text
           key={`cl-${j}`}
           transform={`translate(${rowLabelW + j * cellSize + cellSize / 2}, ${topLabelH - 3}) rotate(-90)`}
@@ -47,17 +50,23 @@ function SimilarityHeatmap({
           {lbl}
         </text>
       ))}
-      {matrix.map((row, i) => row.map((v, j) => (
-        <rect
-          key={`${i}-${j}`}
-          x={rowLabelW + j * cellSize}
-          y={topLabelH + i * cellSize}
-          width={cellSize}
-          height={cellSize}
-          fill={cellColor(v)}
-        >
-          <title>{`${labels[i] ?? i} vs ${labels[j]}: ${v.toFixed(2)}`}</title>
-        </rect>
+      {matrix.map((row, i) => (reverseDiagonal ? row.toReversed() : row).map((v, j) => (
+        ((!reverseDiagonal) || (row.length - i) > j) ? (
+          <rect
+            key={`${i}-${j}`}
+            x={rowLabelW + j * cellSize}
+            y={topLabelH + i * cellSize}
+            width={cellSize}
+            height={cellSize}
+            fill={cellColor(v)}
+          >
+            <title>
+              {i}
+              {' '}
+              {j}
+            </title>
+          </rect>
+        ) : null
       )))}
     </svg>
   );

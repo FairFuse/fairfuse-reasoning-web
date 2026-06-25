@@ -277,11 +277,12 @@ function FairFuseApp() {
             >
               Similarity
             </div>
-            <div style={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
               <SimilarityHeatmap
                 matrix={baseMatrix}
                 labels={baseHeatmapLabels}
                 cellSize={sharedCellSize}
+                reverseDiagonal
               />
               {crossMatrix && (
                 <SimilarityHeatmap
