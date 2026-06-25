@@ -1,13 +1,6 @@
 import { PALETTE } from './constants';
 import type { Candidate } from './types';
 
-export function cellColor(v: number): string {
-  const r = Math.round(76 + v * (255 - 76));
-  const g = Math.round(120 + v * (255 - 120));
-  const b = Math.round(168 + v * (255 - 168));
-  return `rgb(${r},${g},${b})`;
-}
-
 export function generateGroupColors(labels: string[]): Record<string, string> {
   return Object.fromEntries(labels.map((label, i) => [label, PALETTE[i % PALETTE.length]]));
 }
