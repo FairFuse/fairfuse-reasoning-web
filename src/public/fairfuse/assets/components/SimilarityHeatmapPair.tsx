@@ -19,7 +19,7 @@ type Props = {
   onHoverCols?: (cols: [string, string] | null) => void;
 };
 
-const ROW_LABEL_W = 100;
+const ROW_LABEL_W = 64;
 const TOP_LABEL_H = 100;
 const MATRIX_GAP = 8;
 const LEGEND_MARGIN_TOP = 20;
@@ -103,7 +103,7 @@ function SimilarityHeatmapPair({
           x={ROW_LABEL_W - 4}
           y={TOP_LABEL_H + i * cellSize + cellSize / 2 + 4}
           textAnchor="end"
-          fontSize={11}
+          fontSize={13}
           fill="#888"
         >
           {lbl}
@@ -116,7 +116,7 @@ function SimilarityHeatmapPair({
           key={`lcl-${j}`}
           transform={`translate(${ROW_LABEL_W + j * cellSize + cellSize / 2}, ${TOP_LABEL_H - 3}) rotate(-90)`}
           textAnchor="start"
-          fontSize={11}
+          fontSize={13}
           fill="#888"
         >
           {lbl}
@@ -129,7 +129,7 @@ function SimilarityHeatmapPair({
           key={`rcl-${j}`}
           transform={`translate(${ROW_LABEL_W + leftGridW + MATRIX_GAP + j * cellSize + cellSize / 2}, ${TOP_LABEL_H - 3}) rotate(-90)`}
           textAnchor="start"
-          fontSize={11}
+          fontSize={13}
           fill="#888"
         >
           {lbl}

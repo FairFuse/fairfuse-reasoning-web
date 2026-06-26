@@ -237,7 +237,7 @@ function FairFuseApp() {
     <Box h="calc(100vh - 80px)" style={{ display: 'flex' }}>
       {/* Sidebar */}
       <Box
-        w={400}
+        w={300}
         style={{
           display: 'flex', flexDirection: 'column', gap: 16, padding: '12px 10px', borderRight: '1px solid #dee2e6', flexShrink: 0,
         }}
@@ -282,7 +282,7 @@ function FairFuseApp() {
               fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 6,
             }}
             >
-              Similarity
+              Similarity View
             </div>
             <SimilarityHeatmapPair
               baseMatrix={baseMatrix}
@@ -303,6 +303,12 @@ function FairFuseApp() {
               fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8,
             }}
             >
+              Attribute Legend
+            </div>
+            <div style={{
+              fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8,
+            }}
+            >
               {protectedAttr}
             </div>
             {groupLabels.map((label) => {
@@ -314,16 +320,16 @@ function FairFuseApp() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 8,
-                    marginBottom: 5,
+                    marginBottom: 2,
                     opacity: dimmed ? 0.25 : 1,
                     transition: 'opacity 0.15s',
                   }}
                 >
                   <div style={{
-                    width: 18, height: 18, borderRadius: 3, flexShrink: 0, backgroundColor: groupColors[label] ?? '#999',
+                    width: 20, height: 20, borderRadius: 2, flexShrink: 0, backgroundColor: groupColors[label] ?? '#999',
                   }}
                   />
-                  <span style={{ fontSize: 13, color: '#333' }}>{label}</span>
+                  <span style={{ fontSize: 14, color: '#333' }}>{label}</span>
                 </div>
               );
             })}
