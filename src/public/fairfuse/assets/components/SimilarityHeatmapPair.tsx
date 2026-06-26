@@ -192,8 +192,8 @@ function SimilarityHeatmapPair({
         width={legendW}
         height={LEGEND_BAR_H}
         fill="url(#sim-grad)"
-        stroke="#ccc"
-        strokeWidth={0.5}
+        stroke="#000"
+        strokeWidth={1}
       />
 
       {/* Legend end labels */}
