@@ -7,7 +7,9 @@ import {
 import { IconX } from '@tabler/icons-react';
 import { CSV_URL } from './constants';
 import type { Candidate, ColFairness, GeneratedRanking } from './types';
-import { generateGroupColors, parseCsv } from './utils';
+import {
+  buildGroupArrays, formatColLabel, generateGroupColors, parseCsv, sortByColRank,
+} from './utils';
 import RankingView from './components/RankingView';
 import SimilarityHeatmapPair from './components/SimilarityHeatmapPair';
 
@@ -54,16 +56,11 @@ function FairFuseApp() {
     const allRankings = allCols.map((col) => {
       const gr = generatedRankings.find((g) => g.colName === col);
       if (gr) return [...candidates].sort((a, b) => (gr.rankById[a.id] ?? 9999) - (gr.rankById[b.id] ?? 9999)).map((c) => c.id);
-      return [...candidates].sort((a, b) => a.rankings[col] - b.rankings[col]).map((c) => c.id);
+      return sortByColRank(candidates, col).map((c) => c.id);
     });
 
-    const sortedCandidates = [...candidates].sort((a, b) => a.id - b.id);
-    const uniqueRegions = [...new Set(sortedCandidates.map((c) => c.region))];
-    const regionToGroupId = Object.fromEntries(uniqueRegions.map((r, i) => [r, i]));
-    const groups = [
-      sortedCandidates.map((c) => c.id),
-      sortedCandidates.map((c) => regionToGroupId[c.region]),
-    ];
+    const { ids, groupIds } = buildGroupArrays(candidates);
+    const groups = [ids, groupIds];
 
     fetch('http://localhost:8001/fairness-metrics', {
       method: 'POST',
@@ -83,7 +80,7 @@ function FairFuseApp() {
   useEffect(() => {
     if (candidates.length === 0 || rankingCols.length === 0) return;
 
-    const rankings = rankingCols.map((col) => [...candidates].sort((a, b) => a.rankings[col] - b.rankings[col]).map((c) => c.id));
+    const rankings = rankingCols.map((col) => sortByColRank(candidates, col).map((c) => c.id));
     const consensusRankings = generatedRankings.map((gr) => [...candidates].sort((a, b) => (gr.rankById[a.id] ?? 9999) - (gr.rankById[b.id] ?? 9999)).map((c) => c.id));
 
     fetch('http://localhost:8001/similarity-metrics', {
@@ -123,14 +120,9 @@ function FairFuseApp() {
   const handleGenerateConsensus = useCallback(async () => {
     setGenerating(true);
     try {
-      const rankings = rankingCols.map((col) => [...candidates].sort((a, b) => a.rankings[col] - b.rankings[col]).map((c) => c.id));
-      const sortedCandidates = [...candidates].sort((a, b) => a.id - b.id);
-      const uniqueRegions = [...new Set(sortedCandidates.map((c) => c.region))];
-      const regionToGroupId = Object.fromEntries(uniqueRegions.map((r, i) => [r, i]));
-      const groups = [
-        sortedCandidates.map((c) => c.id),
-        sortedCandidates.map((c) => regionToGroupId[c.region]),
-      ];
+      const rankings = rankingCols.map((col) => sortByColRank(candidates, col).map((c) => c.id));
+      const { ids, groupIds } = buildGroupArrays(candidates);
+      const groups = [ids, groupIds];
       const res = await fetch('http://localhost:8001/consensus', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -191,12 +183,12 @@ function FairFuseApp() {
   );
 
   const baseHeatmapLabels = useMemo(
-    () => baseDisplayedCols.map((col) => col.replace(/^#R/, '').replace(/_/g, ' ').trim()),
+    () => baseDisplayedCols.map(formatColLabel),
     [baseDisplayedCols],
   );
 
   const consensusHeatmapLabels = useMemo(
-    () => consensusDisplayedCols.map((col) => `Consensus ${col.slice(6)}`),
+    () => consensusDisplayedCols.map(formatColLabel),
     [consensusDisplayedCols],
   );
 
@@ -229,6 +221,13 @@ function FairFuseApp() {
     [nBase, nConsensus],
   );
 
+  const highlightedCols = useMemo(
+    () => (hoveredHeatmapCols ? new Set(hoveredHeatmapCols) : undefined),
+    [hoveredHeatmapCols],
+  );
+
+  const candidateNames = useMemo(() => candidates.map((c) => c.name), [candidates]);
+
   const searchedId = searchQuery.trim()
     ? (candidates.find((c) => c.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))?.id ?? null)
     : null;
@@ -258,7 +257,7 @@ function FairFuseApp() {
               max={1}
               step={0.01}
               value={Math.round((1 - arpThreshold) * 100) / 100}
-              onChange={(v) => ((1 - v) < maxArp ? setArpThreshold(1 - v) : (1 - maxArp))}
+              onChange={(v) => { const next = 1 - v; if (next < (maxArp ?? 1)) setArpThreshold(next); }}
               size="md"
               marks={[
                 { value: parseFloat((1 - maxArp).toFixed(2)), label: 'Min' },
@@ -360,7 +359,7 @@ function FairFuseApp() {
             placeholder="Search candidate…"
             value={searchQuery}
             onChange={setSearchQuery}
-            data={candidates.map((c) => c.name)}
+            data={candidateNames}
             style={{ flex: 1, maxWidth: 200 }}
             rightSection={
               searchQuery
@@ -389,7 +388,7 @@ function FairFuseApp() {
             onPinToggle={handlePinToggle}
             onDeleteConsensus={handleDeleteConsensus}
             onColsChange={setDisplayedCols}
-            highlightedCols={hoveredHeatmapCols ? new Set(hoveredHeatmapCols) : undefined}
+            highlightedCols={highlightedCols}
           />
         </Box>
       </Box>

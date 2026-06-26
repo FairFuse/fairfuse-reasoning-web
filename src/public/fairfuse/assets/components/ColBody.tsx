@@ -1,16 +1,14 @@
 import { memo, useMemo } from 'react';
 import { COL_W_NORMAL, ROW_H } from '../constants';
 import type { ColBodyProps } from '../types';
+import { sortByColRank } from '../utils';
 import ConsensusColBody from './ConsensusColBody';
 
 function ColBody({
   col, colW, compressed, rowH, candidates, hoveredId, hoveredCol, hoveredGroup, onHover, onReorder, groupColors, highlighted,
 }: ColBodyProps) {
   // useMemo must be called unconditionally before any early return
-  const sorted = useMemo(
-    () => [...candidates].sort((a, b) => a.rankings[col] - b.rankings[col]),
-    [candidates, col],
-  );
+  const sorted = useMemo(() => sortByColRank(candidates, col), [candidates, col]);
 
   if (col.startsWith('#FAIR_')) {
     return (
@@ -37,7 +35,6 @@ function ColBody({
         const isHovered = c.id === hoveredId;
         const expandHover = compressed && isHovered && hoveredCol === col;
         const effectiveH = expandHover ? ROW_H : rowH;
-        // const topOffset = expandHover ? idx * rowH - (ROW_H - rowH) / 2 : idx * rowH;
         const topOffset = idx * rowH;
         return (
           <div

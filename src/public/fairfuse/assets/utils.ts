@@ -1,6 +1,26 @@
 import { PALETTE } from './constants';
 import type { Candidate } from './types';
 
+export function formatColLabel(col: string): string {
+  return col.startsWith('#FAIR_')
+    ? `Consensus ${col.slice(6)}`
+    : col.replace(/^#R/, '').replace(/_/g, ' ').trim();
+}
+
+export function sortByColRank(candidates: Candidate[], col: string): Candidate[] {
+  return [...candidates].sort((a, b) => a.rankings[col] - b.rankings[col]);
+}
+
+export function buildGroupArrays(candidates: Candidate[]): { ids: number[]; groupIds: number[] } {
+  const sorted = [...candidates].sort((a, b) => a.id - b.id);
+  const uniqueRegions = [...new Set(sorted.map((c) => c.region))];
+  const regionToGroupId = Object.fromEntries(uniqueRegions.map((r, i) => [r, i]));
+  return {
+    ids: sorted.map((c) => c.id),
+    groupIds: sorted.map((c) => regionToGroupId[c.region]),
+  };
+}
+
 export function generateGroupColors(labels: string[]): Record<string, string> {
   return Object.fromEntries(labels.map((label, i) => [label, PALETTE[i % PALETTE.length]]));
 }

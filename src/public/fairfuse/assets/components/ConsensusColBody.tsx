@@ -3,17 +3,14 @@ import {
   DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent,
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ROW_H } from '../constants';
 import type { ColBodyProps } from '../types';
+import { sortByColRank } from '../utils';
 import SortableCandidateRow from './SortableCandidateRow';
 
 function ConsensusColBody({
   col, colW, compressed, rowH, candidates, hoveredId, hoveredCol, hoveredGroup, onHover, onReorder, groupColors, highlighted,
 }: ColBodyProps) {
-  const sorted = useMemo(
-    () => [...candidates].sort((a, b) => a.rankings[col] - b.rankings[col]),
-    [candidates, col],
-  );
+  const sorted = useMemo(() => sortByColRank(candidates, col), [candidates, col]);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const handleDragEnd = useCallback(({ active, over }: DragEndEvent) => {
@@ -34,7 +31,6 @@ function ConsensusColBody({
           {sorted.map((c, idx) => {
             const isHovered = c.id === hoveredId;
             const expandHover = compressed && isHovered && hoveredCol === col;
-            // const topOffset = expandHover ? idx * rowH - (ROW_H - rowH) / 2 : idx * rowH;
             const topOffset = idx * rowH;
             return (
               <SortableCandidateRow

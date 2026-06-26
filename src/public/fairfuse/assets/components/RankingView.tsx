@@ -9,6 +9,7 @@ import {
   BOUNDARY_GAP_W, COL_W_COMPRESSED, COL_W_NORMAL, HEADER_H, ROW_H, ROW_H_COMPRESSED, SVG_W,
 } from '../constants';
 import type { Candidate, ColFairness } from '../types';
+import { formatColLabel } from '../utils';
 import ColBody from './ColBody';
 import ColHeader from './ColHeader';
 import ConnectorSvg from './ConnectorSvg';
@@ -151,19 +152,19 @@ function RankingView({
 
   const handleDragCancel = useCallback(() => { setActiveId(null); setOverId(null); }, []);
 
+  const handleDragStart = useCallback((e: { active: { id: unknown } }) => {
+    setActiveId(e.active.id as string);
+  }, []);
+
   const totalSize = virtualizer.getTotalSize();
-  const activeLabel = activeId
-    ? (activeId.startsWith('#FAIR_')
-      ? `Consensus ${activeId.slice(6)}`
-      : activeId.replace(/^#R/, '').replace(/_/g, ' ').trim())
-    : '';
+  const activeLabel = activeId ? formatColLabel(activeId) : '';
 
   return (
     <div style={{ flex: 1, width: 300 }}>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
-        onDragStart={(e) => setActiveId(e.active.id as string)}
+        onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
@@ -214,8 +215,8 @@ function RankingView({
                         hoveredFpr={hoveredFpr}
                         onDotHover={handleDotHover}
                         pinned={pinnedCols.has(cols[colIdx])}
-                        onPinToggle={() => onPinToggle(cols[colIdx])}
-                        onDelete={() => onDeleteConsensus(cols[colIdx])}
+                        onPinToggle={onPinToggle}
+                        onDelete={onDeleteConsensus}
                         highlighted={highlightedCols?.has(cols[colIdx])}
                       />
                     )}
