@@ -1,11 +1,11 @@
 export const CSV_URL = '/fairfuse/assets/data/help-or-hinder-scholarships-30-5.csv';
 
 export const COL_W_NORMAL = 160;
-export const COL_W_COMPRESSED = 38;
+export const COL_W_COMPRESSED = 50;
 export const SVG_W = 100;
 export const BOUNDARY_GAP_W = 200;
 export const ROW_H = 28;
-export const ROW_H_COMPRESSED = 4;
+export const ROW_H_COMPRESSED = 8;
 export const LABEL_H = 40;
 export const GROUP_FAIRNESS_VIEW_H = 150;
 export const GROUP_FAIRNESS_VIEW_W = COL_W_NORMAL + 40;

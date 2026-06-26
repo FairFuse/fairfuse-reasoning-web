@@ -51,7 +51,7 @@ function ColHeader({
       }}
     >
       <div style={{
-        height: LABEL_H, display: 'flex', alignItems: 'center', paddingLeft: 0, gap: 1, justifyContent: compressed ? 'center' : undefined,
+        height: LABEL_H, display: 'flex', alignItems: 'center', paddingLeft: 0, gap: 1,
       }}
       >
         <button
@@ -69,27 +69,24 @@ function ColHeader({
             flexShrink: 0,
             color: '#aaa',
           }}
-          title={compressed ? label : undefined}
         >
           <IconGripVertical size={14} />
         </button>
-        {!compressed && (
-          <span
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: '#555',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              flex: 1,
-            }}
-            title={label}
-          >
-            {label}
-          </span>
-        )}
-        {!compressed && col.startsWith('#FAIR_') && (
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            color: '#555',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            flex: 1,
+          }}
+          title={label}
+        >
+          {label}
+        </span>
+        {col.startsWith('#FAIR_') && (
           <>
             <button
               type="button"
@@ -138,8 +135,8 @@ function ColHeader({
           alignItems: 'center',
         }}
       >
-        {!compressed && colFairness && (() => {
-          const svgW = GROUP_FAIRNESS_VIEW_W;
+        {colFairness && (() => {
+          const svgW = compressed ? colW + 60 : GROUP_FAIRNESS_VIEW_W;
           const svgH = GROUP_FAIRNESS_VIEW_H;
           const marginV = 16;
           const totalH = svgH - 2 * marginV;
@@ -148,7 +145,8 @@ function ColHeader({
           const minFpr = Math.min(...colFairness.fpr);
           const maxFpr = Math.max(...colFairness.fpr);
           const n = colFairness.fpr.length;
-          const dotX = (i: number) => (n === 1 ? svgW / 2 : 20 + (i / (n - 1)) * (svgW - 40));
+          const dotMargin = compressed ? 4 : 20;
+          const dotX = (i: number) => (n === 1 ? svgW / 2 : dotMargin + (i / (n - 1)) * (svgW - 2 * dotMargin));
           const DOT_R = 5;
           const totalInCol = candidates.filter((c) => col in c.rankings).length;
           const rankToY = (rank: number) => marginV + ((rank - 1) / Math.max(1, totalInCol - 1)) * totalH;

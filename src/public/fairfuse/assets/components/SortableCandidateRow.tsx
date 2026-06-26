@@ -50,7 +50,7 @@ function SortableCandidateRow({
         cursor: isDragging ? 'grabbing' : 'default',
         zIndex: isDragging ? 3 : expandHover ? 1 : undefined,
         borderRadius: expandHover ? 2 : undefined,
-        border: '1px solid #d0d0d0',
+        border: compressed ? '0px' : '1px solid #d0d0d0',
         boxShadow: isDragging ? '0 2px 8px rgba(0,0,0,0.18)' : expandHover ? '0 1px 4px rgba(0,0,0,0.15)' : undefined,
         transform: CSS.Transform.toString(transform ? { ...transform, x: 0 } : null),
         transition: [transition, 'opacity 0.15s'].filter(Boolean).join(', '),

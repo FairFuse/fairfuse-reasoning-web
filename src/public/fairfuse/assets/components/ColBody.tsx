@@ -63,7 +63,7 @@ function ColBody({
               zIndex: expandHover ? 1 : undefined,
               borderRadius: expandHover ? 2 : undefined,
               boxShadow: expandHover ? '0 1px 4px rgba(0,0,0,0.15)' : undefined,
-              border: '1px solid #d0d0d0',
+              border: compressed ? '0px' : '1px solid #d0d0d0',
               opacity: hoveredGroup !== null && c.region !== hoveredGroup ? 0.2 : 1,
               transition: 'opacity 0.15s',
             }}
