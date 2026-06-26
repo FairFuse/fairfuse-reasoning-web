@@ -37,7 +37,8 @@ function ColBody({
         const isHovered = c.id === hoveredId;
         const expandHover = compressed && isHovered && hoveredCol === col;
         const effectiveH = expandHover ? ROW_H : rowH;
-        const topOffset = expandHover ? idx * rowH - (ROW_H - rowH) / 2 : idx * rowH;
+        // const topOffset = expandHover ? idx * rowH - (ROW_H - rowH) / 2 : idx * rowH;
+        const topOffset = idx * rowH;
         return (
           <div
             key={c.id}

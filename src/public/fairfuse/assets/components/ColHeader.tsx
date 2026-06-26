@@ -44,7 +44,6 @@ function ColHeader({
         width: colW,
         height: HEADER_H,
         backgroundColor: highlighted ? 'rgba(76,120,168,0.08)' : 'white',
-        borderBottom: '2px solid #dee2e6',
         transition: 'background-color 0.1s',
         opacity: isDragging ? 0.4 : 1,
         boxSizing: 'border-box',

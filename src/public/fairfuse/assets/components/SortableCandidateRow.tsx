@@ -23,9 +23,11 @@ function SortableCandidateRow({
   c, rowH, colW, compressed, isHovered, expandHover, topOffset, col, onHover, groupColors, hoveredGroup,
 }: Props) {
   const {
-    attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging,
+    attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging, active,
   } = useSortable({ id: c.id });
-  const effectiveH = expandHover ? ROW_H : rowH;
+  const isHoveredInternal = active ? false : isHovered;
+  const expandHoverInternal = active ? false : expandHover;
+  const effectiveH = expandHoverInternal ? ROW_H : rowH;
   return (
     <div
       ref={setNodeRef}
@@ -35,23 +37,23 @@ function SortableCandidateRow({
         position: 'absolute',
         top: topOffset,
         left: 0,
-        width: expandHover ? COL_W_NORMAL : colW,
+        width: expandHoverInternal ? COL_W_NORMAL : colW,
         height: effectiveH,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: compressed && !expandHover ? 'center' : undefined,
+        justifyContent: compressed && !expandHoverInternal ? 'center' : undefined,
         gap: 4,
-        paddingLeft: expandHover ? 2 : compressed ? 0 : 2,
+        paddingLeft: expandHoverInternal ? 2 : compressed ? 0 : 2,
         fontSize: 14,
         overflow: 'hidden',
         whiteSpace: 'nowrap',
-        backgroundColor: isDragging ? '#f0f4ff' : isHovered ? '#e8f0fe' : 'transparent',
-        fontWeight: isHovered ? 600 : 400,
+        backgroundColor: isDragging ? '#f0f4ff' : isHoveredInternal ? '#e8f0fe' : 'transparent',
+        fontWeight: isHoveredInternal ? 600 : 400,
         cursor: isDragging ? 'grabbing' : 'default',
-        zIndex: isDragging ? 3 : expandHover ? 1 : undefined,
-        borderRadius: expandHover ? 2 : undefined,
+        zIndex: isDragging ? 3 : expandHoverInternal ? 1 : undefined,
+        borderRadius: expandHoverInternal ? 2 : undefined,
         border: compressed ? '0px' : '1px solid #d0d0d0',
-        boxShadow: isDragging ? '0 2px 8px rgba(0,0,0,0.18)' : expandHover ? '0 1px 4px rgba(0,0,0,0.15)' : undefined,
+        boxShadow: isDragging ? '0 2px 8px rgba(0,0,0,0.18)' : expandHoverInternal ? '0 1px 4px rgba(0,0,0,0.15)' : undefined,
         transform: CSS.Transform.toString(transform ? { ...transform, x: 0 } : null),
         transition: [transition, 'opacity 0.15s'].filter(Boolean).join(', '),
         opacity: isDragging ? 0.85 : hoveredGroup !== null && c.region !== hoveredGroup ? 0.2 : 1,
@@ -76,8 +78,8 @@ function SortableCandidateRow({
         width: 24, height: 24, borderRadius: 2, flexShrink: 0, backgroundColor: groupColors[c.region] ?? '#999',
       }}
       />
-      {(!compressed || expandHover) && (
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', color: isHovered ? '#1a1a1a' : '#333' }}>
+      {(!compressed || expandHoverInternal) && (
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', color: isHoveredInternal ? '#1a1a1a' : '#333' }}>
           {c.name}
         </span>
       )}

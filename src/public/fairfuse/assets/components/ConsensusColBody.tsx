@@ -25,13 +25,17 @@ function ConsensusColBody({
   }, [sorted, col, onReorder]);
 
   return (
-    <div style={{ width: colW, height: candidates.length * rowH, position: 'relative', backgroundColor: highlighted ? 'rgba(76,120,168,0.07)' : undefined }}>
+    <div style={{
+      width: colW, height: candidates.length * rowH, position: 'relative', backgroundColor: highlighted ? 'rgba(76,120,168,0.07)' : undefined,
+    }}
+    >
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={sorted.map((c) => c.id)} strategy={verticalListSortingStrategy}>
           {sorted.map((c, idx) => {
             const isHovered = c.id === hoveredId;
             const expandHover = compressed && isHovered && hoveredCol === col;
-            const topOffset = expandHover ? idx * rowH - (ROW_H - rowH) / 2 : idx * rowH;
+            // const topOffset = expandHover ? idx * rowH - (ROW_H - rowH) / 2 : idx * rowH;
+            const topOffset = idx * rowH;
             return (
               <SortableCandidateRow
                 key={c.id}
