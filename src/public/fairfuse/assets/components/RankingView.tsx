@@ -160,7 +160,45 @@ function RankingView({
   const activeLabel = activeId ? formatColLabel(activeId) : '';
 
   return (
-    <div style={{ flex: 1, width: 300 }}>
+    <div style={{ flex: 1, width: 300, position: 'relative' }}>
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        height: HEADER_H,
+        zIndex: 20,
+        background: '#AAA',
+        color: '#fff',
+        fontSize: 14,
+        writingMode: 'vertical-rl',
+        transform: 'rotate(180deg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '0 3px',
+      }}
+      >
+        Group Fairness View
+      </div>
+      <div style={{
+        position: 'absolute',
+        top: HEADER_H,
+        bottom: 0,
+        left: 0,
+        zIndex: 20,
+        background: '#999',
+        color: '#fff',
+        fontSize: 14,
+        writingMode: 'vertical-rl',
+        transform: 'rotate(180deg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '0 3px',
+      }}
+      >
+        Rank Exploration View
+      </div>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
