@@ -287,6 +287,15 @@ export async function studyStoreCreator(
           state.rankingAnswers = {};
         }
       },
+      updateProvenanceGraph: (state, {
+        payload,
+      }: PayloadAction<{
+        location: ResponseBlockLocation;
+        identifier: string;
+        provenanceGraph?: TrrackedProvenance;
+      }>) => {
+        state.trialValidation[payload.identifier].provenanceGraph[payload.location] = payload.provenanceGraph;
+      },
       updateResponseBlockValidation: (
         state,
         {

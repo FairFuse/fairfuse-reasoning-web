@@ -105,7 +105,7 @@
       "response": [
         {
           "id": "candidateName",
-          "type": "shortText",
+          "type": "reactive",
           "prompt": "Select the candidate with <strong>most disagreement</strong> between <strong>Math</strong> and <strong>Reading</strong> rankings. (You can hover over a candidate to find their name)",
           "location": "sidebar"
         },

@@ -148,7 +148,8 @@ export interface StimulusParams<T, S = never> {
   parameters: T;
   provenanceState?: S;
   answers: ParticipantData['answers'];
-  setAnswer: ({ status, provenanceGraph, answers }: { status: boolean, provenanceGraph?: TrrackedProvenance, answers: StoredAnswer['answer'] }) => void
+  setAnswer: ({ status, provenanceGraph, answers }: { status: boolean, provenanceGraph?: TrrackedProvenance, answers: StoredAnswer['answer'] }) => void;
+  setProvenance: (provenanceGraph: TrrackedProvenance) => void;
 }
 
 export interface CustomResponseField<TValue extends JsonValue = JsonValue> {

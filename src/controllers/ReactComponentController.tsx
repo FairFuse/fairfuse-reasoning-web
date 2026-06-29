@@ -3,7 +3,7 @@ import {
 } from 'react';
 import { ModuleNamespace } from 'vite/types/hot';
 import { ParticipantData, ReactComponent } from '../parser/types';
-import { StimulusParams } from '../store/types';
+import { StimulusParams, TrrackedProvenance } from '../store/types';
 import { ResourceNotFound } from '../ResourceNotFound';
 import { useStoreDispatch, useStoreActions } from '../store/store';
 import { useCurrentIdentifier } from '../routes/utils';
@@ -23,7 +23,7 @@ export function ReactComponentController({ currentConfig, provState, answers }: 
   const identifier = useCurrentIdentifier();
 
   const storeDispatch = useStoreDispatch();
-  const { updateResponseBlockValidation, setReactiveAnswers } = useStoreActions();
+  const { updateResponseBlockValidation, setReactiveAnswers, updateProvenanceGraph } = useStoreActions();
   const setAnswer = useCallback(({ status, provenanceGraph, answers: stimulusAnswers }: Parameters<StimulusParams<unknown>['setAnswer']>[0]) => {
     storeDispatch(updateResponseBlockValidation({
       location: 'stimulus',
@@ -36,6 +36,14 @@ export function ReactComponentController({ currentConfig, provState, answers }: 
     storeDispatch(setReactiveAnswers(stimulusAnswers));
   }, [setReactiveAnswers, storeDispatch, updateResponseBlockValidation, identifier]);
 
+  const setProvenance = useCallback((provenanceGraph: TrrackedProvenance) => {
+    storeDispatch(updateProvenanceGraph({
+      identifier,
+      location: 'stimulus',
+      provenanceGraph,
+    }));
+  }, [updateProvenanceGraph, storeDispatch, identifier]);
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       {StimulusComponent
@@ -46,6 +54,7 @@ export function ReactComponentController({ currentConfig, provState, answers }: 
               setAnswer={setAnswer}
               answers={answers}
               provenanceState={provState}
+              setProvenance={setProvenance}
             />
           </ErrorBoundary>
         )

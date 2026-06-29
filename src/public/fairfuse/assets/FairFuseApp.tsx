@@ -13,8 +13,9 @@ import {
 import RankingView from './components/RankingView';
 import SimilarityHeatmapPair from './components/SimilarityHeatmapPair';
 import { AppNavBar } from '../../../components/interface/AppNavBar';
+import { StimulusParams } from '../../../store/types';
 
-function FairFuseApp() {
+function FairFuseApp(_: StimulusParams<unknown, unknown>) {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [rankingCols, setRankingCols] = useState<string[]>([]);
   const [protectedAttr, setProtectedAttr] = useState('Group');

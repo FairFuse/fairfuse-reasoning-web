@@ -41,6 +41,7 @@ function ColBody({
             key={c.id}
             onMouseEnter={() => onHover(c.id, col)}
             onMouseLeave={() => onHover(null, null)}
+            // onClick={() => { console.log(c.name); }}
             style={{
               position: 'absolute',
               top: topOffset,
