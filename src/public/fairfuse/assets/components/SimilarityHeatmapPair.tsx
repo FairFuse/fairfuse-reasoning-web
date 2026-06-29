@@ -20,7 +20,7 @@ type Props = {
 };
 
 const ROW_LABEL_W = 64;
-const TOP_LABEL_H = 100;
+const TOP_LABEL_H = 80;
 const MATRIX_GAP = 8;
 const LEGEND_MARGIN_TOP = 20;
 const LEGEND_BAR_H = 12;

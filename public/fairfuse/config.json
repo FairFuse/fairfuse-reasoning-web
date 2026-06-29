@@ -19,11 +19,10 @@
   "baseComponents": {
     "fairfuseApp": {
       "description": "Test description",
-      "instruction": "This is a test.",
       "withSidebar": false,
       "type": "react-component",
       "path": "fairfuse/assets/FairFuseApp.tsx",
-      "nextButtonLocation": "belowStimulus",
+      "nextButtonLocation": "sidebar",
       "showTitleBar": false,
       "response": []
     }
@@ -34,12 +33,33 @@
       "path": "fairfuse/assets/introduction.md",
       "response": []
     },
-    "trialApp": {
-      "baseComponent": "fairfuseApp"
+    "taskRace": {
+      "baseComponent": "fairfuseApp",
+      "response": [
+        {
+          "id": "race",
+          "type": "radio",
+          "prompt": "What is the <strong>race</strong> of <strong>Taylor Landry</strong>?",
+          "options": ["Native", "Black", "White", "Pacific Islander", "Asian"],
+          "location": "sidebar"
+        }
+      ]
+    },
+    "taskGroupAdv": {
+      "baseComponent": "fairfuseApp",
+      "response": [
+        {
+          "id": "groupAdv",
+          "type": "checkbox",
+          "prompt": "Which race groups are <strong>over advantaged</strong> in the <strong>Math</strong> ranking? (Please select all that apply)",
+          "options": ["Native", "Black", "White", "Pacific Islander", "Asian"],
+          "location": "sidebar"
+        }
+      ]
     }
   },
   "sequence": {
     "order": "fixed",
-    "components": ["introduction", "trialApp"]
+    "components": ["introduction", "taskRace", "taskGroupAdv"]
   }
 }

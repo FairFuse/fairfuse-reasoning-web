@@ -2,7 +2,7 @@ import {
   useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
 import {
-  Autocomplete, Box, Button, SegmentedControl, Slider,
+  Autocomplete, Box, Button, Flex, SegmentedControl, Slider,
 } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import { CSV_URL } from './constants';
@@ -12,6 +12,7 @@ import {
 } from './utils';
 import RankingView from './components/RankingView';
 import SimilarityHeatmapPair from './components/SimilarityHeatmapPair';
+import { AppNavBar } from '../../../components/interface/AppNavBar';
 
 function FairFuseApp() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -217,7 +218,7 @@ function FairFuseApp() {
   }, [displayedMatrix, nBase, consensusDisplayedCols.length]);
 
   const sharedCellSize = useMemo(
-    () => ((nBase + nConsensus) > 0 ? Math.max(4, Math.floor((270 - 100) / (nBase + nConsensus))) : 20),
+    () => ((nBase + nConsensus) > 0 ? Math.max(4, Math.floor((225 - 100) / (nBase + nConsensus))) : 20),
     [nBase, nConsensus],
   );
 
@@ -233,52 +234,61 @@ function FairFuseApp() {
     : null;
 
   return (
-    <Box h="calc(100vh - 80px)" style={{ display: 'flex' }}>
+    <Box h="calc(100vh)" style={{ display: 'flex' }} m="-16">
       {/* Sidebar */}
-      <Box
-        w={300}
+      <Flex
+        direction="column"
+        w={350}
         style={{
-          display: 'flex', flexDirection: 'column', gap: 16, padding: '12px 10px', borderRight: '1px solid #dee2e6', flexShrink: 0,
+          borderRight: '1px solid #dee2e6',
         }}
       >
-        {maxArp !== null && (
-          <div>
-            <div style={{
-              fontSize: 14, fontWeight: 600, color: '#555', marginBottom: 10,
-            }}
-            >
-              Fairness Threshold:
-              {' '}
-              {(1 - arpThreshold).toFixed(2)}
+        <Box style={{ flexShrink: 0, overflowY: 'auto', flex: 1 }}>
+          {/* 1. Fairness controller */}
+          <div style={{ padding: 16, background: '#f5f5f5' }}>
+            {maxArp !== null && (
+            <div>
+              <div style={{
+                fontSize: 14, fontWeight: 600, color: '#555', marginBottom: 10,
+              }}
+              >
+                Fairness Threshold:
+                {' '}
+                {(1 - arpThreshold).toFixed(2)}
+              </div>
+              <Slider
+                defaultValue={1}
+                min={0}
+                max={1}
+                step={0.01}
+                value={Math.round((1 - arpThreshold) * 100) / 100}
+                onChange={(v) => { const next = 1 - v; if (next < (maxArp ?? 1)) setArpThreshold(next); }}
+                size="md"
+                marks={[
+                  { value: parseFloat((1 - maxArp).toFixed(2)), label: 'Min' },
+                  { value: 1, label: 'Max' },
+                ]}
+                mb="sm"
+                h={32}
+              />
             </div>
-            <Slider
-              defaultValue={1}
-              min={0}
-              max={1}
-              step={0.01}
-              value={Math.round((1 - arpThreshold) * 100) / 100}
-              onChange={(v) => { const next = 1 - v; if (next < (maxArp ?? 1)) setArpThreshold(next); }}
-              size="md"
-              marks={[
-                { value: parseFloat((1 - maxArp).toFixed(2)), label: 'Min' },
-                { value: 1, label: 'Max' },
-              ]}
-              mb="sm"
-            />
+            )}
+            <Button
+              size="xs"
+              fullWidth
+              loading={generating}
+              disabled={candidates.length === 0}
+              onClick={handleGenerateConsensus}
+            >
+              {maxArp !== null ? 'Generate Fair Consensus Ranking' : 'Generate Consensus Ranking'}
+            </Button>
           </div>
-        )}
-        <Button
-          size="xs"
-          loading={generating}
-          disabled={candidates.length === 0}
-          onClick={handleGenerateConsensus}
-        >
-          {maxArp !== null ? 'Generate Fair Consensus Ranking' : 'Generate Consensus Ranking'}
-        </Button>
-        {baseMatrix && (
-          <div>
+
+          {/* 2. Similarity View */}
+          {baseMatrix && (
+          <div style={{ padding: 16, borderTop: '1px solid #dee2e6' }}>
             <div style={{
-              fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 6,
+              fontSize: 14, fontWeight: 600, color: '#555', marginBottom: 6,
             }}
             >
               Similarity View
@@ -294,12 +304,13 @@ function FairFuseApp() {
               onHoverCols={handleHeatmapHoverCols}
             />
           </div>
-        )}
+          )}
 
-        {groupLabels.length > 0 && (
-          <div>
+          {/* 3. Legend */}
+          {groupLabels.length > 0 && (
+          <div style={{ padding: 16, borderTop: '1px solid #dee2e6' }}>
             <div style={{
-              fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 8,
+              fontSize: 13, fontWeight: 700, color: '#333', marginBottom: 4,
             }}
             >
               Attribute Legend
@@ -333,8 +344,24 @@ function FairFuseApp() {
               );
             })}
           </div>
-        )}
-      </Box>
+          )}
+        </Box>
+
+        {/* 4. Participant Task */}
+        <Flex
+          direction="column"
+          style={{
+            position: 'relative', borderTop: '1px solid #dee2e6', maxHeight: 350, overflow: 'auto',
+          }}
+        >
+          <Box px={16} py={4} bg="blue.1">
+            <h4 style={{ margin: 0, padding: 0 }}>Task</h4>
+          </Box>
+          <Box flex={1} style={{ overflow: 'auto' }}>
+            <AppNavBar width={349} top={0} sidebarOpen />
+          </Box>
+        </Flex>
+      </Flex>
 
       {/* Main column */}
       <Box flex={1} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
