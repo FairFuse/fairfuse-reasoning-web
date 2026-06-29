@@ -23,3 +23,9 @@ export type ColBodyProps = {
   onReorder?: (colName: string, newOrderedIds: number[]) => void;
   highlighted?: boolean;
 };
+
+export interface ProvenanceStateModel {
+  searchQuery: string;
+  hoveredGroup: string | null;
+  hoveredGroupRankingView: string | null;
+}

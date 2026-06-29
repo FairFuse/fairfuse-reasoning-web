@@ -6,7 +6,9 @@ import {
 } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import { CSV_URL } from './constants';
-import type { Candidate, ColFairness, GeneratedRanking } from './types';
+import type {
+  Candidate, ColFairness, GeneratedRanking, ProvenanceStateModel,
+} from './types';
 import {
   buildGroupArrays, formatColLabel, generateGroupColors, parseCsv, sortByColRank,
 } from './utils';
@@ -14,18 +16,22 @@ import RankingView from './components/RankingView';
 import SimilarityHeatmapPair from './components/SimilarityHeatmapPair';
 import { AppNavBar } from '../../../components/interface/AppNavBar';
 import { StimulusParams } from '../../../store/types';
+import { SharedStateProvider, useSharedState } from './SharedStateContext';
 
 function FairFuseApp(_: StimulusParams<unknown, unknown>) {
+  const {
+    searchQuery, setSearchQuery, hoveredGroup, setHoveredGroup,
+  } = useSharedState();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [rankingCols, setRankingCols] = useState<string[]>([]);
   const [protectedAttr, setProtectedAttr] = useState('Group');
   const [compressed, setCompressed] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  // const [searchQuery, setSearchQuery] = useState('');
   const [arpThreshold, setArpThreshold] = useState(0.5);
   const [maxArp, setMaxArp] = useState<number | null>(null);
   const [generatedRankings, setGeneratedRankings] = useState<GeneratedRanking[]>([]);
   const [generating, setGenerating] = useState(false);
-  const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
+  // const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
   const [displayedCols, setDisplayedCols] = useState<string[]>([]);
   const [hoveredHeatmapCols, setHoveredHeatmapCols] = useState<[string, string] | null>(null);
   const [similarityMatrix, setSimilarityMatrix] = useState<number[][] | null>(null);
@@ -424,4 +430,12 @@ function FairFuseApp(_: StimulusParams<unknown, unknown>) {
   );
 }
 
-export default FairFuseApp;
+export function FairFuseAppWrapper(props: StimulusParams<[], ProvenanceStateModel>) {
+  return (
+    <SharedStateProvider provenanceState={props.provenanceState} setProvenance={props.setProvenance}>
+      <FairFuseApp {...props} />
+    </SharedStateProvider>
+  );
+}
+
+export default FairFuseAppWrapper;

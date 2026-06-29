@@ -14,6 +14,7 @@ import ColBody from './ColBody';
 import ColHeader from './ColHeader';
 import ConnectorSvg from './ConnectorSvg';
 import GapDropzone from './GapDropzone';
+import { useSharedState } from '../SharedStateContext';
 
 type Props = {
   candidates: Candidate[];
@@ -59,7 +60,11 @@ function RankingView({
   const [overId, setOverId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [hoveredCol, setHoveredCol] = useState<string | null>(null);
-  const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
+  // const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
+  const {
+    hoveredGroupRankingView: hoveredGroup, setHoveredGroupRankingView: setHoveredGroup,
+  } = useSharedState();
+
   const [hoveredFpr, setHoveredFpr] = useState<number | null>(null);
 
   const candidateHoveredGroup = useMemo(
@@ -117,7 +122,7 @@ function RankingView({
   const handleDotHover = useCallback((g: string | null, f: number | null) => {
     setHoveredGroup(g);
     setHoveredFpr(f);
-  }, []);
+  }, [setHoveredGroup]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
