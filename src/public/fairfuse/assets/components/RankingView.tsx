@@ -58,11 +58,10 @@ function RankingView({
   const [cols, setCols] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
-  const [hoveredCol, setHoveredCol] = useState<string | null>(null);
-  // const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
   const {
     hoveredGroupRankingView: hoveredGroup, setHoveredGroupRankingView: setHoveredGroup,
+    hoveredId, setHoveredId,
+    hoveredCol, setHoveredCol,
   } = useSharedState();
 
   const [hoveredFpr, setHoveredFpr] = useState<number | null>(null);

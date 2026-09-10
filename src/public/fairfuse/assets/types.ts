@@ -28,4 +28,10 @@ export interface ProvenanceStateModel {
   searchQuery: string;
   hoveredGroup: string | null;
   hoveredGroupRankingView: string | null;
+  hoveredId: number | null;
+  hoveredCol: string | null;
+  arpThreshold: number;
+  generatedRankings: GeneratedRanking[];
+  similarityMatrix: number[][] | null;
+  colFairnessMap: Record<string, ColFairness>;
 }

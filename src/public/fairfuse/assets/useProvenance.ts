@@ -1,5 +1,6 @@
 import { initializeTrrack, Registry } from '@trrack/core';
 import { useMemo } from 'react';
+import type { ColFairness, GeneratedRanking } from './types';
 
 const useProvenance = () => {
   const prov = useMemo(() => {
@@ -20,12 +21,48 @@ const useProvenance = () => {
       return state;
     });
 
+    const trrackHoveredId = reg.register('hoveredId', (state, d: number | null) => {
+      state.hoveredId = d;
+      return state;
+    });
+
+    const trrackHoveredCol = reg.register('hoveredCol', (state, d: string | null) => {
+      state.hoveredCol = d;
+      return state;
+    });
+
+    const trrackArpThreshold = reg.register('arpThreshold', (state, d: number) => {
+      state.arpThreshold = d;
+      return state;
+    });
+
+    const trrackGeneratedRankings = reg.register('generatedRankings', (state, d: GeneratedRanking[]) => {
+      state.generatedRankings = d;
+      return state;
+    });
+
+    const trrackSimilarityMatrix = reg.register('similarityMatrix', (state, d: number[][] | null) => {
+      state.similarityMatrix = d;
+      return state;
+    });
+
+    const trrackColFairnessMap = reg.register('colFairnessMap', (state, d: Record<string, ColFairness>) => {
+      state.colFairnessMap = d;
+      return state;
+    });
+
     const trrackInst = initializeTrrack({
       registry: reg,
       initialState: {
         searchQuery: '',
         hoveredGroup: null,
         hoveredGroupRankingView: null,
+        hoveredId: null,
+        hoveredCol: null,
+        arpThreshold: 0.5,
+        generatedRankings: [],
+        similarityMatrix: null,
+        colFairnessMap: {},
       },
     });
 
@@ -34,6 +71,12 @@ const useProvenance = () => {
         trrackSearchQuery,
         trrackHoveredGroup,
         trrackHoveredGroupRankingView,
+        trrackHoveredId,
+        trrackHoveredCol,
+        trrackArpThreshold,
+        trrackGeneratedRankings,
+        trrackSimilarityMatrix,
+        trrackColFairnessMap,
       },
       trrack: trrackInst,
     };
