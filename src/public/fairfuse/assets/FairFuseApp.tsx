@@ -26,6 +26,7 @@ function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
     similarityMatrix, setSimilarityMatrix,
     colFairnessMap, setColFairnessMap,
     displayedCols,
+    hoveredHeatmapCols, setHoveredHeatmapCols,
   } = useSharedState();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [rankingCols, setRankingCols] = useState<string[]>([]);
@@ -35,7 +36,6 @@ function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
   const [maxArp, setMaxArp] = useState<number | null>(null);
   const [generating, setGenerating] = useState(false);
   // const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
-  const [hoveredHeatmapCols, setHoveredHeatmapCols] = useState<[string, string] | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const consensusCountRef = useRef(0);
 
@@ -320,6 +320,7 @@ function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
               crossLabels={consensusHeatmapLabels}
               crossColNames={consensusDisplayedCols}
               cellSize={sharedCellSize}
+              hoveredCols={hoveredHeatmapCols}
               onHoverCols={handleHeatmapHoverCols}
             />
           </div>

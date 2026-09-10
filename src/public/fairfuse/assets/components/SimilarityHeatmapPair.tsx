@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useMemo } from 'react';
 import { scaleSequential } from 'd3-scale';
 import { interpolateRgb } from 'd3-interpolate';
 
@@ -16,6 +16,7 @@ type Props = {
   crossLabels: string[];
   crossColNames: string[];
   cellSize: number;
+  hoveredCols: [string, string] | null;
   onHoverCols?: (cols: [string, string] | null) => void;
 };
 
@@ -30,10 +31,8 @@ const LEGEND_H = LEGEND_MARGIN_TOP + LEGEND_BAR_H + LEGEND_LABEL_H;
 function SimilarityHeatmapPair({
   baseMatrix, baseLabels, baseColNames,
   crossMatrix, crossLabels, crossColNames,
-  cellSize, onHoverCols,
+  cellSize, hoveredCols, onHoverCols,
 }: Props) {
-  const [hoveredCell, setHoveredCell] = useState<HoveredCell | null>(null);
-
   const nBase = baseLabels.length;
   const nCross = crossLabels.length;
   const hasCross = crossMatrix !== null && nCross > 0;
@@ -61,19 +60,35 @@ function SimilarityHeatmapPair({
   const legendBarY = TOP_LABEL_H + cellSize * nBase + LEGEND_MARGIN_TOP;
   const legendLabelY = legendBarY + LEGEND_BAR_H + 12;
 
-  const handleCellEnter = (
-    v: number,
-    rowLabel: string,
-    colLabel: string,
-    col1: string,
-    col2: string,
-  ) => {
-    setHoveredCell({ v, rowLabel, colLabel });
+  const hoveredCell: HoveredCell | null = useMemo(() => {
+    if (!hoveredCols) return null;
+    const [col1, col2] = hoveredCols;
+    for (let i = 0; i < nBase; i += 1) {
+      const rowRev = baseMatrix[i].toReversed();
+      for (let j = 0; j < rowRev.length; j += 1) {
+        const inTriangle = (nBase - i) > j;
+        if (inTriangle && baseColNames[i] === col1 && baseColNames[nBase - 1 - j] === col2) {
+          return { v: rowRev[j], rowLabel: baseLabels[i], colLabel: labelsReversed[j] };
+        }
+      }
+    }
+    if (hasCross) {
+      for (let i = 0; i < nBase; i += 1) {
+        for (let j = 0; j < nCross; j += 1) {
+          if (baseColNames[i] === col1 && crossColNames[j] === col2) {
+            return { v: crossMatrix![i][j], rowLabel: baseLabels[i], colLabel: crossLabels[j] };
+          }
+        }
+      }
+    }
+    return null;
+  }, [hoveredCols, baseMatrix, crossMatrix, baseColNames, crossColNames, baseLabels, crossLabels, labelsReversed, nBase, nCross, hasCross]);
+
+  const handleCellEnter = (col1: string, col2: string) => {
     onHoverCols?.([col1, col2]);
   };
 
   const handleSvgLeave = () => {
-    setHoveredCell(null);
     onHoverCols?.(null);
   };
 
@@ -141,22 +156,20 @@ function SimilarityHeatmapPair({
         if ((nBase - i) <= j) return null;
         const cx = ROW_LABEL_W + j * cellSize;
         const cy = TOP_LABEL_H + i * cellSize;
+        const col1 = baseColNames[i];
+        const col2 = baseColNames[nBase - 1 - j];
+        const isHovered = hoveredCols?.[0] === col1 && hoveredCols?.[1] === col2;
         return (
           <rect
             key={`b-${i}-${j}`}
             x={cx}
             y={cy}
             stroke="#000"
+            strokeWidth={isHovered ? 2 : 1}
             width={cellSize}
             height={cellSize}
             fill={colorScale(v)}
-            onMouseEnter={() => handleCellEnter(
-              v,
-              baseLabels[i],
-              labelsReversed[j],
-              baseColNames[i],
-              baseColNames[nBase - 1 - j],
-            )}
+            onMouseEnter={() => handleCellEnter(col1, col2)}
           />
         );
       }))}
@@ -165,22 +178,20 @@ function SimilarityHeatmapPair({
       {hasCross && crossMatrix!.map((row, i) => row.map((v, j) => {
         const cx = ROW_LABEL_W + leftGridW + MATRIX_GAP + j * cellSize;
         const cy = TOP_LABEL_H + i * cellSize;
+        const col1 = baseColNames[i];
+        const col2 = crossColNames[j];
+        const isHovered = hoveredCols?.[0] === col1 && hoveredCols?.[1] === col2;
         return (
           <rect
             key={`c-${i}-${j}`}
             x={cx}
             y={cy}
             stroke="#000"
+            strokeWidth={isHovered ? 2 : 1}
             width={cellSize}
             height={cellSize}
             fill={colorScale(v)}
-            onMouseEnter={() => handleCellEnter(
-              v,
-              baseLabels[i],
-              crossLabels[j],
-              baseColNames[i],
-              crossColNames[j],
-            )}
+            onMouseEnter={() => handleCellEnter(col1, col2)}
           />
         );
       }))}

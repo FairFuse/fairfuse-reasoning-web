@@ -37,4 +37,5 @@ export interface ProvenanceStateModel {
   similarityMatrix: number[][] | null;
   colFairnessMap: Record<string, ColFairness>;
   displayedCols: string[];
+  hoveredHeatmapCols: [string, string] | null;
 }

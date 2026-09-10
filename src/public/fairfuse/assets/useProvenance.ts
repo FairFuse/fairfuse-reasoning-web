@@ -56,6 +56,11 @@ const useProvenance = () => {
       return state;
     });
 
+    const trrackHoveredHeatmapCols = reg.register('hoveredHeatmapCols', (state, d: [string, string] | null) => {
+      state.hoveredHeatmapCols = d;
+      return state;
+    });
+
     const trrackInst = initializeTrrack({
       registry: reg,
       initialState: {
@@ -69,6 +74,7 @@ const useProvenance = () => {
         similarityMatrix: null,
         colFairnessMap: {},
         displayedCols: [],
+        hoveredHeatmapCols: null,
       },
     });
 
@@ -84,6 +90,7 @@ const useProvenance = () => {
         trrackSimilarityMatrix,
         trrackColFairnessMap,
         trrackDisplayedCols,
+        trrackHoveredHeatmapCols,
       },
       trrack: trrackInst,
     };

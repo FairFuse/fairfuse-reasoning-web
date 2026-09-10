@@ -26,6 +26,8 @@ interface SharedState {
   setColFairnessMap: React.Dispatch<React.SetStateAction<Record<string, ColFairness>>>;
   displayedCols: string[];
   setDisplayedCols: React.Dispatch<React.SetStateAction<string[]>>;
+  hoveredHeatmapCols: [string, string] | null;
+  setHoveredHeatmapCols: React.Dispatch<React.SetStateAction<[string, string] | null>>;
 }
 
 const SharedStateContext = createContext<SharedState | null>(null);
@@ -47,6 +49,7 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
   const [similarityMatrix, setSimilarityMatrix] = useState<number[][] | null>(null);
   const [colFairnessMap, setColFairnessMap] = useState<Record<string, ColFairness>>({});
   const [displayedCols, setDisplayedCols] = useState<string[]>([]);
+  const [hoveredHeatmapCols, setHoveredHeatmapCols] = useState<[string, string] | null>(null);
 
   const provenance = useProvenance();
 
@@ -62,6 +65,7 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
       setSimilarityMatrix(provenanceState.similarityMatrix ?? null);
       setColFairnessMap(provenanceState.colFairnessMap ?? {});
       setDisplayedCols(provenanceState.displayedCols ?? []);
+      setHoveredHeatmapCols(provenanceState.hoveredHeatmapCols ?? null);
     }
   }, [provenanceState]);
 
@@ -115,6 +119,11 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
     setProvenance(provenance.trrack.graph.backend);
   }, [displayedCols, provenance, setProvenance]);
 
+  useEffect(() => {
+    provenance.trrack.apply('HoveredHeatmapCols', provenance.actions.trrackHoveredHeatmapCols(hoveredHeatmapCols));
+    setProvenance(provenance.trrack.graph.backend);
+  }, [hoveredHeatmapCols, provenance, setProvenance]);
+
   const value = useMemo(
     () => ({
       searchQuery,
@@ -137,8 +146,10 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
       setColFairnessMap,
       displayedCols,
       setDisplayedCols,
+      hoveredHeatmapCols,
+      setHoveredHeatmapCols,
     }),
-    [searchQuery, hoveredGroup, hoveredGroupRankingView, hoveredId, hoveredCol, arpThreshold, generatedRankings, similarityMatrix, colFairnessMap, displayedCols],
+    [searchQuery, hoveredGroup, hoveredGroupRankingView, hoveredId, hoveredCol, arpThreshold, generatedRankings, similarityMatrix, colFairnessMap, displayedCols, hoveredHeatmapCols],
   );
 
   return (
