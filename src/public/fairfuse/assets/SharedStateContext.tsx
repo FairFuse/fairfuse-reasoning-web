@@ -49,15 +49,15 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
 
   useEffect(() => {
     if (provenanceState) {
-      setSearchQuery(provenanceState.searchQuery);
-      setHoveredGroup(provenanceState.hoveredGroup);
-      setHoveredGroupRankingView(provenanceState.hoveredGroupRankingView);
-      setHoveredId(provenanceState.hoveredId);
-      setHoveredCol(provenanceState.hoveredCol);
-      setArpThreshold(provenanceState.arpThreshold);
-      setGeneratedRankings(provenanceState.generatedRankings || []);
-      setSimilarityMatrix(provenanceState.similarityMatrix);
-      setColFairnessMap(provenanceState.colFairnessMap);
+      setSearchQuery(provenanceState.searchQuery ?? '');
+      setHoveredGroup(provenanceState.hoveredGroup ?? null);
+      setHoveredGroupRankingView(provenanceState.hoveredGroupRankingView ?? null);
+      setHoveredId(provenanceState.hoveredId ?? null);
+      setHoveredCol(provenanceState.hoveredCol ?? null);
+      setArpThreshold(provenanceState.arpThreshold ?? 0.5);
+      setGeneratedRankings(provenanceState.generatedRankings ?? []);
+      setSimilarityMatrix(provenanceState.similarityMatrix ?? null);
+      setColFairnessMap(provenanceState.colFairnessMap ?? {});
     }
   }, [provenanceState]);
 
