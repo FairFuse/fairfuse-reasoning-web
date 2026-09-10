@@ -34,4 +34,5 @@ export interface ProvenanceStateModel {
   generatedRankings: GeneratedRanking[];
   similarityMatrix: number[][] | null;
   colFairnessMap: Record<string, ColFairness>;
+  displayedCols: string[];
 }

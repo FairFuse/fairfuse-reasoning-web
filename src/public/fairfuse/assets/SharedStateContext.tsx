@@ -24,6 +24,8 @@ interface SharedState {
   setSimilarityMatrix: React.Dispatch<React.SetStateAction<number[][] | null>>;
   colFairnessMap: Record<string, ColFairness>;
   setColFairnessMap: React.Dispatch<React.SetStateAction<Record<string, ColFairness>>>;
+  displayedCols: string[];
+  setDisplayedCols: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 const SharedStateContext = createContext<SharedState | null>(null);
@@ -44,6 +46,7 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
   const [generatedRankings, setGeneratedRankings] = useState<GeneratedRanking[]>([]);
   const [similarityMatrix, setSimilarityMatrix] = useState<number[][] | null>(null);
   const [colFairnessMap, setColFairnessMap] = useState<Record<string, ColFairness>>({});
+  const [displayedCols, setDisplayedCols] = useState<string[]>([]);
 
   const provenance = useProvenance();
 
@@ -58,6 +61,7 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
       setGeneratedRankings(provenanceState.generatedRankings ?? []);
       setSimilarityMatrix(provenanceState.similarityMatrix ?? null);
       setColFairnessMap(provenanceState.colFairnessMap ?? {});
+      setDisplayedCols(provenanceState.displayedCols ?? []);
     }
   }, [provenanceState]);
 
@@ -106,6 +110,11 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
     setProvenance(provenance.trrack.graph.backend);
   }, [colFairnessMap, provenance, setProvenance]);
 
+  useEffect(() => {
+    provenance.trrack.apply('DisplayedCols', provenance.actions.trrackDisplayedCols(displayedCols));
+    setProvenance(provenance.trrack.graph.backend);
+  }, [displayedCols, provenance, setProvenance]);
+
   const value = useMemo(
     () => ({
       searchQuery,
@@ -126,8 +135,10 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
       setSimilarityMatrix,
       colFairnessMap,
       setColFairnessMap,
+      displayedCols,
+      setDisplayedCols,
     }),
-    [searchQuery, hoveredGroup, hoveredGroupRankingView, hoveredId, hoveredCol, arpThreshold, generatedRankings, similarityMatrix, colFairnessMap],
+    [searchQuery, hoveredGroup, hoveredGroupRankingView, hoveredId, hoveredCol, arpThreshold, generatedRankings, similarityMatrix, colFairnessMap, displayedCols],
   );
 
   return (

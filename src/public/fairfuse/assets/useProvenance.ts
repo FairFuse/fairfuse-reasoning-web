@@ -51,6 +51,11 @@ const useProvenance = () => {
       return state;
     });
 
+    const trrackDisplayedCols = reg.register('displayedCols', (state, d: string[]) => {
+      state.displayedCols = d;
+      return state;
+    });
+
     const trrackInst = initializeTrrack({
       registry: reg,
       initialState: {
@@ -63,6 +68,7 @@ const useProvenance = () => {
         generatedRankings: [],
         similarityMatrix: null,
         colFairnessMap: {},
+        displayedCols: [],
       },
     });
 
@@ -77,6 +83,7 @@ const useProvenance = () => {
         trrackGeneratedRankings,
         trrackSimilarityMatrix,
         trrackColFairnessMap,
+        trrackDisplayedCols,
       },
       trrack: trrackInst,
     };

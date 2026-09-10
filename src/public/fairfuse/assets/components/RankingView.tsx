@@ -29,7 +29,6 @@ type Props = {
   pinnedCols: Set<string>;
   onPinToggle: (col: string) => void;
   onDeleteConsensus: (col: string) => void;
-  onColsChange?: (cols: string[]) => void;
   highlightedCols?: Set<string>;
 };
 
@@ -52,16 +51,15 @@ function RankingView({
   pinnedCols,
   onPinToggle,
   onDeleteConsensus,
-  onColsChange,
   highlightedCols,
 }: Props) {
-  const [cols, setCols] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const {
     hoveredGroupRankingView: hoveredGroup, setHoveredGroupRankingView: setHoveredGroup,
     hoveredId, setHoveredId,
     hoveredCol, setHoveredCol,
+    displayedCols, setDisplayedCols,
   } = useSharedState();
 
   const [hoveredFpr, setHoveredFpr] = useState<number | null>(null);
@@ -73,7 +71,7 @@ function RankingView({
   const effectiveHoveredGroup = hoveredGroup ?? candidateHoveredGroup;
 
   useEffect(() => {
-    setCols((prev) => {
+    setDisplayedCols((prev) => {
       const initialSet = new Set(initialCols);
       const kept = prev.filter((c) => initialSet.has(c));
       const keptSet = new Set(kept);
@@ -81,19 +79,17 @@ function RankingView({
       const next = [...kept, ...added];
       return next.length === prev.length && next.every((c, i) => c === prev[i]) ? prev : next;
     });
-  }, [initialCols]);
-
-  useEffect(() => { onColsChange?.(cols); }, [cols]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initialCols, setDisplayedCols]);
 
   const colW = compressed ? COL_W_COMPRESSED : COL_W_NORMAL;
   const rowH = compressed ? ROW_H_COMPRESSED : ROW_H;
   const scrollRef = useRef<HTMLDivElement>(null);
-  const numCols = cols.length;
+  const numCols = displayedCols.length;
   const count = numCols > 0 ? 2 * numCols + 1 : 0;
   const bodyH = candidates.length * rowH;
 
-  const nOrigCols = cols.filter((c) => !c.startsWith('#FAIR_')).length;
-  const boundaryVIdx = (nOrigCols > 0 && nOrigCols < cols.length) ? nOrigCols * 2 : -1;
+  const nOrigCols = displayedCols.filter((c) => !c.startsWith('#FAIR_')).length;
+  const boundaryVIdx = (nOrigCols > 0 && nOrigCols < displayedCols.length) ? nOrigCols * 2 : -1;
   const gapWidth = useCallback(
     (vIdx: number) => (vIdx === boundaryVIdx ? BOUNDARY_GAP_W : SVG_W),
     [boundaryVIdx],
@@ -131,7 +127,7 @@ function RankingView({
     const overIdStr = over.id as string;
     if (!overIdStr.startsWith('gap-')) return;
     const gapIdx = parseInt(overIdStr.replace('gap-', ''), 10);
-    setCols((prev) => {
+    setDisplayedCols((prev) => {
       const a = prev.indexOf(active.id as string);
       if (a === -1) return prev;
       if (!isValidDrop(active.id as string, gapIdx, prev)) return prev;
@@ -142,17 +138,17 @@ function RankingView({
       next.splice(adjusted, 0, removed);
       return next;
     });
-  }, []);
+  }, [setDisplayedCols]);
 
   const handleDragOver = useCallback((e: { over: { id: unknown } | null; active: { id: unknown } }) => {
     const overTarget = (e.over?.id as string) ?? null;
     if (overTarget?.startsWith('gap-') && e.active.id) {
       const gapIdx = parseInt(overTarget.replace('gap-', ''), 10);
-      setOverId(isValidDrop(e.active.id as string, gapIdx, cols) ? overTarget : null);
+      setOverId(isValidDrop(e.active.id as string, gapIdx, displayedCols) ? overTarget : null);
     } else {
       setOverId(null);
     }
-  }, [cols]);
+  }, [displayedCols]);
 
   const handleDragCancel = useCallback(() => { setActiveId(null); setOverId(null); }, []);
 
@@ -246,20 +242,20 @@ function RankingView({
                     )
                     : (
                       <ColHeader
-                        col={cols[colIdx]}
+                        col={displayedCols[colIdx]}
                         colW={colW}
                         compressed={compressed}
-                        colFairness={colFairnessMap[cols[colIdx]]}
+                        colFairness={colFairnessMap[displayedCols[colIdx]]}
                         candidates={candidates}
                         groupLabels={groupLabels}
                         groupColors={groupColors}
                         hoveredGroup={effectiveHoveredGroup}
                         hoveredFpr={hoveredFpr}
                         onDotHover={handleDotHover}
-                        pinned={pinnedCols.has(cols[colIdx])}
+                        pinned={pinnedCols.has(displayedCols[colIdx])}
                         onPinToggle={onPinToggle}
                         onDelete={onDeleteConsensus}
-                        highlighted={highlightedCols?.has(cols[colIdx])}
+                        highlighted={highlightedCols?.has(displayedCols[colIdx])}
                       />
                     )}
                 </div>
@@ -285,8 +281,8 @@ function RankingView({
                     gapIdx > 0 && gapIdx < numCols
                       ? (
                         <ConnectorSvg
-                          leftCol={cols[gapIdx - 1]}
-                          rightCol={cols[gapIdx]}
+                          leftCol={displayedCols[gapIdx - 1]}
+                          rightCol={displayedCols[gapIdx]}
                           candidates={candidates}
                           isOver={overId === `gap-${gapIdx}`}
                           hoveredId={hoveredId ?? searchedId}
@@ -297,7 +293,7 @@ function RankingView({
                       : <div style={{ width: gapWidth(i), height: bodyH }} />
                   ) : (
                     <ColBody
-                      col={cols[colIdx]}
+                      col={displayedCols[colIdx]}
                       colW={colW}
                       compressed={compressed}
                       rowH={rowH}
@@ -308,7 +304,7 @@ function RankingView({
                       onHover={handleHover}
                       onReorder={onReorder}
                       groupColors={groupColors}
-                      highlighted={highlightedCols?.has(cols[colIdx])}
+                      highlighted={highlightedCols?.has(displayedCols[colIdx])}
                     />
                   )}
                 </div>
