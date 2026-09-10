@@ -5,7 +5,7 @@ import { sortByColRank } from '../utils';
 import ConsensusColBody from './ConsensusColBody';
 
 function ColBody({
-  col, colW, compressed, rowH, candidates, hoveredId, hoveredCol, hoveredGroup, onHover, onReorder, groupColors, highlighted,
+  col, colW, compressed, rowH, candidates, hoveredId, hoveredCol, hoveredGroup, onHover, onReorder, groupColors, highlighted, selectedId, onSelect,
 }: ColBodyProps) {
   // useMemo must be called unconditionally before any early return
   const sorted = useMemo(() => sortByColRank(candidates, col), [candidates, col]);
@@ -25,6 +25,8 @@ function ColBody({
         onReorder={onReorder}
         groupColors={groupColors}
         highlighted={highlighted}
+        selectedId={selectedId}
+        onSelect={onSelect}
       />
     );
   }
@@ -33,6 +35,7 @@ function ColBody({
     <div style={{ width: colW, height: candidates.length * rowH, position: 'relative' }}>
       {sorted.map((c, idx) => {
         const isHovered = c.id === hoveredId;
+        const isSelected = c.id === selectedId;
         const expandHover = compressed && isHovered && hoveredCol === col;
         const effectiveH = expandHover ? ROW_H : rowH;
         const topOffset = idx * rowH;
@@ -41,7 +44,7 @@ function ColBody({
             key={c.id}
             onMouseEnter={() => onHover(c.id, col)}
             onMouseLeave={() => onHover(null, null)}
-            // onClick={() => { console.log(c.name); }}
+            onClick={() => onSelect(c.id)}
             style={{
               position: 'absolute',
               top: topOffset,
@@ -56,13 +59,13 @@ function ColBody({
               fontSize: 14,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              backgroundColor: isHovered ? '#e8f0fe' : highlighted ? 'rgba(76,120,168,0.07)' : 'white',
-              fontWeight: isHovered ? 600 : 400,
-              cursor: 'default',
+              backgroundColor: isHovered ? '#e8f0fe' : isSelected ? '#fff3bf' : highlighted ? 'rgba(76,120,168,0.07)' : 'white',
+              fontWeight: isHovered || isSelected ? 600 : 400,
+              cursor: 'pointer',
               zIndex: expandHover ? 1 : undefined,
               borderRadius: expandHover ? 2 : undefined,
               boxShadow: expandHover ? '0 1px 4px rgba(0,0,0,0.15)' : undefined,
-              border: compressed ? '0px' : '1px solid #d0d0d0',
+              border: isSelected ? '1px solid #f08c00' : compressed ? '0px' : '1px solid #d0d0d0',
               opacity: hoveredGroup !== null && c.region !== hoveredGroup ? 0.2 : 1,
               transition: 'opacity 0.15s',
             }}

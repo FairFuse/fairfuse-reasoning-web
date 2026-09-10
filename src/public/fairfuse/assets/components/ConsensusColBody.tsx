@@ -8,7 +8,7 @@ import { sortByColRank } from '../utils';
 import SortableCandidateRow from './SortableCandidateRow';
 
 function ConsensusColBody({
-  col, colW, compressed, rowH, candidates, hoveredId, hoveredCol, hoveredGroup, onHover, onReorder, groupColors, highlighted,
+  col, colW, compressed, rowH, candidates, hoveredId, hoveredCol, hoveredGroup, onHover, onReorder, groupColors, highlighted, selectedId, onSelect,
 }: ColBodyProps) {
   const sorted = useMemo(() => sortByColRank(candidates, col), [candidates, col]);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -46,6 +46,8 @@ function ConsensusColBody({
                 onHover={onHover}
                 groupColors={groupColors}
                 hoveredGroup={hoveredGroup ?? null}
+                selectedId={selectedId}
+                onSelect={onSelect}
               />
             );
           })}

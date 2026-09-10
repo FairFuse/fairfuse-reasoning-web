@@ -22,6 +22,8 @@ export type ColBodyProps = {
   onHover: (id: number | null, col: string | null) => void;
   onReorder?: (colName: string, newOrderedIds: number[]) => void;
   highlighted?: boolean;
+  selectedId: number | null;
+  onSelect: (id: number) => void;
 };
 
 export interface ProvenanceStateModel {

@@ -17,22 +17,26 @@ type Props = {
   onHover: (id: number | null, col: string | null) => void;
   groupColors: Record<string, string>;
   hoveredGroup: string | null;
+  selectedId: number | null;
+  onSelect: (id: number) => void;
 };
 
 function SortableCandidateRow({
-  c, rowH, colW, compressed, isHovered, expandHover, topOffset, col, onHover, groupColors, hoveredGroup,
+  c, rowH, colW, compressed, isHovered, expandHover, topOffset, col, onHover, groupColors, hoveredGroup, selectedId, onSelect,
 }: Props) {
   const {
     attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging, active,
   } = useSortable({ id: c.id });
   const isHoveredInternal = active ? false : isHovered;
   const expandHoverInternal = active ? false : expandHover;
+  const isSelected = c.id === selectedId;
   const effectiveH = expandHoverInternal ? ROW_H : rowH;
   return (
     <div
       ref={setNodeRef}
       onMouseEnter={() => onHover(c.id, col)}
       onMouseLeave={() => onHover(null, null)}
+      onClick={() => onSelect(c.id)}
       style={{
         position: 'absolute',
         top: topOffset,
@@ -47,12 +51,12 @@ function SortableCandidateRow({
         fontSize: 14,
         overflow: 'hidden',
         whiteSpace: 'nowrap',
-        backgroundColor: isDragging ? '#f0f4ff' : isHoveredInternal ? '#e8f0fe' : 'transparent',
-        fontWeight: isHoveredInternal ? 600 : 400,
-        cursor: isDragging ? 'grabbing' : 'default',
+        backgroundColor: isDragging ? '#f0f4ff' : isHoveredInternal ? '#e8f0fe' : isSelected ? '#fff3bf' : 'transparent',
+        fontWeight: isHoveredInternal || isSelected ? 600 : 400,
+        cursor: isDragging ? 'grabbing' : 'pointer',
         zIndex: isDragging ? 3 : expandHoverInternal ? 1 : undefined,
         borderRadius: expandHoverInternal ? 2 : undefined,
-        border: compressed ? '0px' : '1px solid #d0d0d0',
+        border: isSelected ? '1px solid #f08c00' : compressed ? '0px' : '1px solid #d0d0d0',
         boxShadow: isDragging ? '0 2px 8px rgba(0,0,0,0.18)' : expandHoverInternal ? '0 1px 4px rgba(0,0,0,0.15)' : undefined,
         transform: CSS.Transform.toString(transform ? { ...transform, x: 0 } : null),
         transition: [transition, 'opacity 0.15s'].filter(Boolean).join(', '),

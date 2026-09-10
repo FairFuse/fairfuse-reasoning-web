@@ -18,7 +18,7 @@ import { AppNavBar } from '../../../components/interface/AppNavBar';
 import { StimulusParams } from '../../../store/types';
 import { SharedStateProvider, useSharedState } from './SharedStateContext';
 
-function FairFuseApp(_: StimulusParams<unknown, unknown>) {
+function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
   const {
     searchQuery, setSearchQuery, hoveredGroup, setHoveredGroup,
     arpThreshold, setArpThreshold,
@@ -36,7 +36,19 @@ function FairFuseApp(_: StimulusParams<unknown, unknown>) {
   const [generating, setGenerating] = useState(false);
   // const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
   const [hoveredHeatmapCols, setHoveredHeatmapCols] = useState<[string, string] | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const consensusCountRef = useRef(0);
+
+  const handleSelect = useCallback((id: number) => {
+    setSelectedId((prev) => (prev === id ? null : id));
+  }, []);
+
+  useEffect(() => {
+    const candidate = candidates.find((c) => c.id === selectedId) ?? null;
+    if (candidate) {
+      setAnswer({ status: true, answers: { candidateName: candidate?.name ?? '' } });
+    }
+  }, [selectedId, candidates, setAnswer]);
 
   const groupLabels = useMemo(() => {
     if (candidates.length === 0) return [];
@@ -422,6 +434,8 @@ function FairFuseApp(_: StimulusParams<unknown, unknown>) {
             onPinToggle={handlePinToggle}
             onDeleteConsensus={handleDeleteConsensus}
             highlightedCols={highlightedCols}
+            selectedId={selectedId}
+            onSelect={handleSelect}
           />
         </Box>
       </Box>
