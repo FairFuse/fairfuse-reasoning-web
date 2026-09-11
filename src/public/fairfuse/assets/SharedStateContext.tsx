@@ -28,6 +28,8 @@ interface SharedState {
   setDisplayedCols: React.Dispatch<React.SetStateAction<string[]>>;
   hoveredHeatmapCols: [string, string] | null;
   setHoveredHeatmapCols: React.Dispatch<React.SetStateAction<[string, string] | null>>;
+  compressed: boolean;
+  setCompressed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SharedStateContext = createContext<SharedState | null>(null);
@@ -50,6 +52,7 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
   const [colFairnessMap, setColFairnessMap] = useState<Record<string, ColFairness>>({});
   const [displayedCols, setDisplayedCols] = useState<string[]>([]);
   const [hoveredHeatmapCols, setHoveredHeatmapCols] = useState<[string, string] | null>(null);
+  const [compressed, setCompressed] = useState<boolean>(false);
 
   const provenance = useProvenance();
 
@@ -66,6 +69,7 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
       setColFairnessMap(provenanceState.colFairnessMap ?? {});
       setDisplayedCols(provenanceState.displayedCols ?? []);
       setHoveredHeatmapCols(provenanceState.hoveredHeatmapCols ?? null);
+      setCompressed(provenanceState.compressed ?? false);
     }
   }, [provenanceState]);
 
@@ -124,6 +128,11 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
     setProvenance(provenance.trrack.graph.backend);
   }, [hoveredHeatmapCols, provenance, setProvenance]);
 
+  useEffect(() => {
+    provenance.trrack.apply('Compressed', provenance.actions.trrackCompressed(compressed));
+    setProvenance(provenance.trrack.graph.backend);
+  }, [compressed, provenance, setProvenance]);
+
   const value = useMemo(
     () => ({
       searchQuery,
@@ -148,8 +157,10 @@ export function SharedStateProvider({ provenanceState, setProvenance, children }
       setDisplayedCols,
       hoveredHeatmapCols,
       setHoveredHeatmapCols,
+      compressed,
+      setCompressed,
     }),
-    [searchQuery, hoveredGroup, hoveredGroupRankingView, hoveredId, hoveredCol, arpThreshold, generatedRankings, similarityMatrix, colFairnessMap, displayedCols, hoveredHeatmapCols],
+    [searchQuery, hoveredGroup, hoveredGroupRankingView, hoveredId, hoveredCol, arpThreshold, generatedRankings, similarityMatrix, colFairnessMap, displayedCols, hoveredHeatmapCols, compressed],
   );
 
   return (

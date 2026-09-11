@@ -27,11 +27,11 @@ function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
     colFairnessMap, setColFairnessMap,
     displayedCols,
     hoveredHeatmapCols, setHoveredHeatmapCols,
+    compressed, setCompressed,
   } = useSharedState();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [rankingCols, setRankingCols] = useState<string[]>([]);
   const [protectedAttr, setProtectedAttr] = useState('Group');
-  const [compressed, setCompressed] = useState(false);
   // const [searchQuery, setSearchQuery] = useState('');
   const [maxArp, setMaxArp] = useState<number | null>(null);
   const [generating, setGenerating] = useState(false);

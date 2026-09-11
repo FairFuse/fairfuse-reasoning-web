@@ -38,4 +38,5 @@ export interface ProvenanceStateModel {
   colFairnessMap: Record<string, ColFairness>;
   displayedCols: string[];
   hoveredHeatmapCols: [string, string] | null;
+  compressed: boolean;
 }

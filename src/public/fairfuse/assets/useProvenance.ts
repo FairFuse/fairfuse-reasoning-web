@@ -61,6 +61,11 @@ const useProvenance = () => {
       return state;
     });
 
+    const trrackCompressed = reg.register('compressed', (state, d: boolean) => {
+      state.compressed = d;
+      return state;
+    });
+
     const trrackInst = initializeTrrack({
       registry: reg,
       initialState: {
@@ -75,6 +80,7 @@ const useProvenance = () => {
         colFairnessMap: {},
         displayedCols: [],
         hoveredHeatmapCols: null,
+        compressed: false,
       },
     });
 
@@ -91,6 +97,7 @@ const useProvenance = () => {
         trrackColFairnessMap,
         trrackDisplayedCols,
         trrackHoveredHeatmapCols,
+        trrackCompressed,
       },
       trrack: trrackInst,
     };
