@@ -1,0 +1,170 @@
+{
+  "$schema": "https://raw.githubusercontent.com/revisit-studies/study/v2.4.1/src/parser/StudyConfigSchema.json",
+  "studyMetadata": {
+    "title": "FairFuse",
+    "version": "pilot",
+    "authors": ["FairFuse"],
+    "date": "2026-02-23",
+    "description": "FairFuse",
+    "organizations": ["WPI"]
+  },
+  "uiConfig": {
+    "contactEmail": "contact@revisit.dev",
+    "helpTextPath": "fairfuse/assets/introduction.md",
+    "logoPath": "revisitAssets/revisitLogoSquare.svg",
+    "withProgressBar": true,
+    "autoDownloadStudy": false,
+    "withSidebar": true
+  },
+  "baseComponents": {
+    "fairfuseApp": {
+      "description": "Test description",
+      "withSidebar": false,
+      "type": "react-component",
+      "path": "fairfuse/assets/FairFuseApp.tsx",
+      "nextButtonLocation": "sidebar",
+      "showTitleBar": false,
+      "response": []
+    }
+  },
+  "components": {
+    "introduction": {
+      "type": "markdown",
+      "path": "fairfuse/assets/introduction.md",
+      "response": []
+    },
+    "taskRace": {
+      "baseComponent": "fairfuseApp",
+      "response": [
+        {
+          "id": "race",
+          "type": "radio",
+          "prompt": "What is the <strong>race</strong> of <strong>Taylor Landry</strong>?",
+          "options": ["Native", "Black", "White", "Pacific Islander", "Asian"],
+          "location": "sidebar"
+        }
+      ]
+    },
+    "taskGroupAdv": {
+      "baseComponent": "fairfuseApp",
+      "response": [
+        {
+          "id": "groupAdv",
+          "type": "checkbox",
+          "prompt": "Which race groups are <strong>over advantaged</strong> in the <strong>Math</strong> ranking? (Please select all that apply)",
+          "options": ["Native", "Black", "White", "Pacific Islander", "Asian"],
+          "location": "sidebar"
+        }
+      ]
+    },
+    "taskMostUnfairRanking": {
+      "baseComponent": "fairfuseApp",
+      "response": [
+        {
+          "id": "mostUnfair",
+          "type": "radio",
+          "prompt": "Which of the 3 rankings is the <strong>most unfair</strong>?",
+          "options": ["Math", "Reading", "Writing"],
+          "location": "sidebar"
+        },
+        {
+          "id": "mostUnfairReason",
+          "type": "longText",
+          "prompt": "Please express why it is unfair: (You may think-aloud)",
+          "location": "sidebar",
+          "required": false
+        }
+      ]
+    },
+    "taskMostAdvWhite": {
+      "baseComponent": "fairfuseApp",
+      "response": [
+        {
+          "id": "mostAdvWhite",
+          "type": "radio",
+          "prompt": "Which of the 3 rankings have the <strong>most advantaged White</strong> race group?",
+          "options": ["Math", "Reading", "Writing"],
+          "location": "sidebar"
+        }
+      ]
+    },
+    "taskRankComparison": {
+      "baseComponent": "fairfuseApp",
+      "response": [
+        {
+          "id": "rankComparison",
+          "type": "radio",
+          "prompt": "How is <strong>Taylor Landry's</strong> position ranked in <strong>Math</strong> compared to <strong>Reading</strong>?",
+          "options": ["Higher", "Somewhat similar", "Lower"],
+          "location": "sidebar"
+        }
+      ]
+    },
+    "taskCandidateDisagreement": {
+      "baseComponent": "fairfuseApp",
+      "response": [
+        {
+          "id": "candidateName",
+          "type": "reactive",
+          "prompt": "Select the candidate with <strong>most disagreement</strong> between <strong>Math</strong> and <strong>Reading</strong> rankings. (You can hover over a candidate to find their name)",
+          "location": "sidebar"
+        },
+        {
+          "id": "candidateDisagreementReason",
+          "type": "longText",
+          "prompt": "Please explain how you deduced your answer:",
+          "location": "sidebar"
+        }
+      ]
+    },
+    "taskConsensusComparison": {
+      "baseComponent": "fairfuseApp",
+      "response": [
+        {
+          "id": "mostDissimilarBase",
+          "type": "radio",
+          "prompt": "<strong>Step 1:</strong> Generate a consensus ranking using the button on the left sidebar.<br/><strong>Step 2:</strong> Use the pin icon in the heading of the generated ranking to pin the ranking.<br/><strong>Step 3:</strong> Which base ranking is most dissimilar to the consensus ranking you just generated?",
+          "options": ["Math", "Reading", "Writing"],
+          "location": "sidebar"
+        },
+        {
+          "id": "mostDissimilarReason",
+          "type": "longText",
+          "prompt": "Please explain why you think so:",
+          "location": "sidebar"
+        }
+      ]
+    },
+    "taskFreeGeneration": {
+      "baseComponent": "fairfuseApp",
+      "response": [
+        {
+          "id": "finalConsensusRanking",
+          "type": "shortText",
+          "prompt": "Generate a fair consensus ranking that is representative of all base rankings and does not over or under advantage race groups. Enter the name of your chosen consensus ranking (e.g. CON#1):",
+          "location": "sidebar"
+        },
+        {
+          "id": "freeGenerationStrategy",
+          "type": "longText",
+          "prompt": "When complete, please describe how you approached the task, including any fairness issues you found and how you resolved them:",
+          "location": "sidebar"
+        }
+      ]
+    }
+  },
+  "sequence": {
+    "order": "fixed",
+    "components": [
+      "introduction",
+      "taskRace",
+      "taskGroupAdv",
+      "taskMostUnfairRanking",
+      "taskMostAdvWhite",
+      "taskRankComparison",
+      "taskCandidateDisagreement",
+      "taskConsensusComparison",
+      "taskFreeGeneration"
+    ]
+  }
+}

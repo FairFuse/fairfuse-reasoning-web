@@ -1,6 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/revisit-studies/study/v2.4.3/src/parser/GlobalConfigSchema.json",
   "configsList": [
+    "fairfuse",
     "tutorial",
     "tutorial-replication",
     "demo-html",
@@ -68,6 +69,9 @@
     "test-step-logic"
   ],
   "configs": {
+    "fairfuse": {
+      "path": "fairfuse/config.json"
+    },
     "tutorial": {
       "path": "tutorial/config.json"
     },

@@ -29,7 +29,9 @@ export function ReactComponentController({ currentConfig, provState, answers }: 
   const identifier = useCurrentIdentifier();
 
   const storeDispatch = useStoreDispatch();
-  const { updateProvenance, updateResponseBlockValidation, setReactiveAnswers } = useStoreActions();
+  const {
+    updateProvenance, updateResponseBlockValidation, setReactiveAnswers, updateProvenanceGraph,
+  } = useStoreActions();
   const isAnalysis = useIsAnalysis();
   const onProvenanceChange = useCallback((provenanceGraph: TrrackedProvenance) => {
     if (isAnalysis) return;
@@ -59,6 +61,14 @@ export function ReactComponentController({ currentConfig, provState, answers }: 
 
     storeDispatch(setReactiveAnswers(stimulusAnswers));
   }, [isAnalysis, setReactiveAnswers, storeDispatch, updateResponseBlockValidation, identifier]);
+
+  const setProvenance = useCallback((provenanceGraph: TrrackedProvenance) => {
+    storeDispatch(updateProvenanceGraph({
+      identifier,
+      location: 'stimulus',
+      provenanceGraph,
+    }));
+  }, [updateProvenanceGraph, storeDispatch, identifier]);
 
   const clearStimulusValidation = useCallback(() => {
     if (isAnalysis) return;
@@ -104,6 +114,7 @@ export function ReactComponentController({ currentConfig, provState, answers }: 
                   answers={answers}
                   provenanceState={provState}
                   useTrrack={useTrrack}
+                  setProvenance={setProvenance}
                 />
               )}
             </RevisitProvenanceProvider>
