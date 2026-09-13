@@ -1,6 +1,9 @@
-import { useEffect, useMemo } from 'react';
+import {
+  useEffect, useMemo, useRef, useState,
+} from 'react';
 import { useSearchParams } from 'react-router';
-import { Box } from '@mantine/core';
+import { Flex } from '@mantine/core';
+import { IconPlayerPlayFilled, IconPlayerPauseFilled } from '@tabler/icons-react';
 import { useStorageEngine } from '../../storage/storageEngineHooks';
 import {
   useStoreActions,
@@ -18,7 +21,26 @@ export function ScreenRecordingReplay() {
     [searchParams],
   );
 
-  const { videoRef, updateReplayRef, isPlaying } = useReplayContext();
+  const {
+    videoRef, updateReplayRef, isPlaying, setIsPlaying,
+  } = useReplayContext();
+
+  const [showIcon, setShowIcon] = useState(false);
+  const hideIconTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasMounted = useRef(false);
+
+  useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return () => { };
+    }
+    setShowIcon(true);
+    if (hideIconTimeout.current) clearTimeout(hideIconTimeout.current);
+    hideIconTimeout.current = setTimeout(() => setShowIcon(false), 500);
+    return () => {
+      if (hideIconTimeout.current) clearTimeout(hideIconTimeout.current);
+    };
+  }, [isPlaying]);
 
   useEffect(() => {
     updateReplayRef();
@@ -86,25 +108,53 @@ export function ScreenRecordingReplay() {
   );
 
   return (
-    <Box pos="relative">
+    <Flex
+      pos="relative"
+      flex={1}
+      ml="calc(0px - var(--app-shell-padding))"
+      mr="calc(0px - var(--app-shell-padding))"
+      mt="calc(0px - var(--app-shell-padding))"
+      mb="calc(0px - var(--app-shell-padding))"
+    >
       {analysisCanPlayScreenRecording && (
-      <video
-        ref={videoRef}
-        width="100%"
-        style={{
-          background: 'black',
-          maxWidth: '100%',
-          maxHeight: 'calc(100vh - 270px)',
-          display: 'block',
-          margin: '20px auto',
-          height: 'auto',
-          border: `5px solid ${isPlaying ? '#ccc' : 'black'}`,
-        }}
-      >
-        <source type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+      <>
+        <video
+          ref={videoRef}
+          width="100%"
+          onClick={() => setIsPlaying(!isPlaying)}
+          style={{
+            background: `${isPlaying ? '#000' : '#222'}`,
+            position: 'absolute',
+            height: '100%',
+            width: '100%',
+            cursor: 'pointer',
+          }}
+        >
+          <source type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <Flex
+          pos="absolute"
+          style={{
+            top: '50%',
+            left: '50%',
+            transform: `translate(-50%, -50%) scale(${showIcon ? 1 : 1.2})`,
+            filter: `blur(${showIcon ? 0 : 2}px)`,
+            background: 'rgba(0,0,0,0.5)',
+            borderRadius: '50%',
+            padding: '16px',
+            pointerEvents: 'none',
+            zIndex: 10,
+            opacity: showIcon ? 1 : 0,
+            transition: 'opacity 0.5s ease, transform 0.5s ease, filter 0.5s ease',
+          }}
+        >
+          {isPlaying
+            ? <IconPlayerPlayFilled size={48} color="white" />
+            : <IconPlayerPauseFilled size={48} color="white" />}
+        </Flex>
+      </>
       )}
-    </Box>
+    </Flex>
   );
 }
