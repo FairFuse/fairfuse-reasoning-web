@@ -31,7 +31,7 @@ import { getLegacyStoredAnswerProvenance } from '../../store/provenance';
 import { getReplaySelection } from './provenanceReplay';
 
 const margin = {
-  left: 20, top: 0, right: 20, bottom: 0,
+  left: 16, top: 0, right: 16, bottom: 0,
 };
 
 function safe<T>(p: Promise<T>): Promise<T | null> {
@@ -359,45 +359,59 @@ export function AudioProvenanceVis({
   }, [answers, taskName, duration, width]);
 
   return (
-    <Group wrap="nowrap" gap={0} mx={0}>
+    <Group wrap="nowrap" gap={0} mx={0} bg="blue.0" style={{ borderBottom: '1px solid var(--app-shell-border-color)' }}>
       <Stack ref={ref} style={{ width: '100%' }} gap={0}>
         <LoadingOverlay visible={waveSurferLoading && hasLoadableTask} overlayProps={{ blur: 5, backgroundOpacity: 0.35 }} />
 
-        {hasLoadableTask
-          ? (
-            <Box pos="relative" ml={margin.left} mr={margin.right}>
-              <Box
-                ref={waveSurferDiv}
-                style={{
-                  overflow: 'hidden', width: '100%', pointerEvents: 'none',
-                }}
-                display={analysisHasAudio ? 'block' : 'none'}
-                id="waveformDiv"
-              >
-                <WaveSurfer backend="MediaElement" onMount={handleWSMount} plugins={[]} container="#waveformDiv" height={50} waveColor="#484848" progressColor="cornflowerblue" barHeight={0} cursorColor="rgba(0, 0, 0, 0)">
-                  <WaveForm id="waveform" height={50} />
-                </WaveSurfer>
+        <Box style={{ position: 'relative', height: 80 }}>
+          {hasLoadableTask
+            ? (
+              <Box pos="relative" ml={margin.left} mr={margin.right} style={{ zIndex: 1 }}>
+                <Box
+                  ref={waveSurferDiv}
+                  style={{
+                    overflow: 'hidden',
+                    width: '100%',
+                    pointerEvents: 'none',
+                  }}
+                  display={analysisHasAudio ? 'block' : 'none'}
+                  id="waveformDiv"
+                >
+                  <WaveSurfer backend="MediaElement" onMount={handleWSMount} plugins={[]} container="#waveformDiv" height={38} waveColor="#AAA" progressColor="cornflowerblue" barHeight={2} cursorColor="rgba(0, 0, 0, 0)" barAlign="bottom">
+                    <WaveForm id="waveform" height={40} />
+                  </WaveSurfer>
+                </Box>
               </Box>
+            ) : null}
+          {xScale ? (
+            <Box pos="absolute" top={0} style={{ zIndex: 1 }}>
+              <Timer height={80} width={width} xScale={xScale} debounceUpdateTimer={_setPlayTime} margin={margin} />
             </Box>
           ) : null}
 
-        {xScale && taskName && provenanceGraph
-          ? (
-            <TaskProvenanceTimeline
-              xScale={xScale}
-              trialName={taskName}
-              currentNode={currentGlobalNode?.name || ''}
-              provenanceGraph={provenanceGraph}
-              width={waveSurferWidth || (width - margin.left - margin.right)}
-              height={25}
-              margin={margin}
-              startTime={answers[taskName]?.startTime}
-            />
-          ) : null}
-
-        {xScale ? (
-          <Timer height={(analysisHasAudio ? 49 : 0) + 25} width={width} xScale={xScale} debounceUpdateTimer={_setPlayTime} />
-        ) : null}
+          <Box
+            style={{
+              position: 'absolute',
+              top: 0,
+              zIndex: 2,
+              pointerEvents: 'none',
+            }}
+          >
+            {xScale && taskName && provenanceGraph
+              ? (
+                <TaskProvenanceTimeline
+                  xScale={xScale}
+                  trialName={taskName}
+                  currentNode={currentGlobalNode?.name || ''}
+                  provenanceGraph={provenanceGraph}
+                  width={waveSurferWidth || (width - margin.left - margin.right)}
+                  height={80}
+                  margin={margin}
+                  startTime={answers[taskName]?.startTime}
+                />
+              ) : null}
+          </Box>
+        </Box>
       </Stack>
     </Group>
   );

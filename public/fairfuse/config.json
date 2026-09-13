@@ -14,8 +14,12 @@
     "logoPath": "revisitAssets/revisitLogoSquare.svg",
     "withProgressBar": true,
     "autoDownloadStudy": false,
-    "withSidebar": true
+    "withSidebar": true,
+    "recordAudio": true,
+    "recordScreen": true,
+    "recordScreenFPS": 30
   },
+  "importedLibraries": ["screen-recording"],
   "baseComponents": {
     "fairfuseApp": {
       "description": "Test description",
@@ -157,6 +161,7 @@
     "order": "fixed",
     "components": [
       "introduction",
+      "$screen-recording.components.screenRecordingPermission",
       "taskRace",
       "taskGroupAdv",
       "taskMostUnfairRanking",

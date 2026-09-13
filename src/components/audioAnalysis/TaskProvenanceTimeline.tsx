@@ -26,12 +26,12 @@ export function TaskProvenanceTimeline({
   const newXScale = useMemo(
     () => xScale
       .copy()
-      .range([0, xScale.range()[1]])
+      .range([0, xScale.range()[1] - margin.left])
       .domain([
         startTime + xScale.domain()[0] * 1000,
         startTime + xScale.domain()[1] * 1000,
       ]),
-    [startTime, xScale],
+    [startTime, xScale, margin],
   );
 
   const provenanceNodes = useMemo(
@@ -54,8 +54,16 @@ export function TaskProvenanceTimeline({
   );
 
   return (
-    <svg style={{ width, height, marginLeft: margin.left }}>
-      <line stroke="black" strokeWidth={1} x1={0} x2={width} y1={height / 2} y2={height / 2} />
+    <svg style={{
+      width, height, marginLeft: margin.left, display: 'block',
+    }}
+    >
+      <defs>
+        <filter x="0" y="-0.2" width="1" height="1.4" id="text-bg">
+          <feFlood floodColor="#444" />
+          <feComposite in="SourceGraphic" operator="over" />
+        </filter>
+      </defs>
       {provenanceNodes}
     </svg>
   );

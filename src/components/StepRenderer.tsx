@@ -274,7 +274,7 @@ export function StepRenderer() {
             padding="md"
             header={{ height: showTitleBar ? 70 : 0 }}
             aside={{ width: STUDY_BROWSER_WIDTH, breakpoint: 'xs', collapsed: { desktop: !asideOpen, mobile: !asideOpen } }}
-            footer={{ height: isAnalysis ? 125 + (hasAudio ? 55 : 0) : 0 }}
+            footer={{ height: isAnalysis ? 95 + (hasAudio ? 55 : 0) : 0 }}
             style={{ '--app-shell-aside-offset': '0rem' } as CSSProperties}
           >
             {asideOpen && <AppAside />}
