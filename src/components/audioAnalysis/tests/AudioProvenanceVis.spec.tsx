@@ -241,33 +241,37 @@ describe('TaskProvenanceTimeline', () => {
 // DOM tests — Timer (real component via vi.importActual)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+const margin = {
+  left: 16, top: 0, right: 16, bottom: 0,
+};
+
 describe('Timer', () => {
   const xScale = d3.scaleLinear().domain([0, 100]).range([0, 500]);
 
   test('renders an SVG element', async () => {
     const { container } = await act(async () => render(
-      <RealTimer width={500} height={60} debounceUpdateTimer={vi.fn()} xScale={xScale} />,
+      <RealTimer width={500} height={60} debounceUpdateTimer={vi.fn()} xScale={xScale} margin={margin} />,
     ));
     expect(container.querySelector('svg')).not.toBeNull();
   });
 
   test('calls forceEmitTimeUpdate on mount', async () => {
     await act(async () => render(
-      <RealTimer width={500} height={60} debounceUpdateTimer={vi.fn()} xScale={xScale} />,
+      <RealTimer width={500} height={60} debounceUpdateTimer={vi.fn()} xScale={xScale} margin={margin} />,
     ));
     expect(mockReplayContext.forceEmitTimeUpdate).toHaveBeenCalled();
   });
 
   test('registers timeupdate listener on replayEvent', async () => {
     await act(async () => render(
-      <RealTimer width={500} height={60} debounceUpdateTimer={vi.fn()} xScale={xScale} />,
+      <RealTimer width={500} height={60} debounceUpdateTimer={vi.fn()} xScale={xScale} margin={margin} />,
     ));
     expect(mockReplayContext.replayEvent.on).toHaveBeenCalledWith('timeupdate', expect.any(Function));
   });
 
   test('unregisters listener on unmount', async () => {
     const { unmount } = await act(async () => render(
-      <RealTimer width={500} height={60} debounceUpdateTimer={vi.fn()} xScale={xScale} />,
+      <RealTimer width={500} height={60} debounceUpdateTimer={vi.fn()} xScale={xScale} margin={margin} />,
     ));
     await act(async () => { unmount(); });
     expect(mockReplayContext.replayEvent.off).toHaveBeenCalledWith('timeupdate', expect.any(Function));
@@ -276,7 +280,7 @@ describe('Timer', () => {
   test('timeupdate callback calls debounceUpdateTimer', async () => {
     const mockDebounce = vi.fn();
     const { container } = await act(async () => render(
-      <RealTimer width={500} height={60} debounceUpdateTimer={mockDebounce} xScale={xScale} />,
+      <RealTimer width={500} height={60} debounceUpdateTimer={mockDebounce} xScale={xScale} margin={margin} />,
     ));
     const entry = mockReplayContext.replayEvent.on.mock.calls.find((call: string[]) => call[0] === 'timeupdate');
     const callback = entry?.[1] as ((t: number) => void) | undefined;

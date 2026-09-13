@@ -48,6 +48,7 @@ describe('demo UpSet replay integration', () => {
         provenanceState={undefined}
         setAnswer={setAnswer}
         useTrrack={vi.fn() as never}
+        setProvenance={() => null}
       />,
     );
 
@@ -85,6 +86,7 @@ describe('demo UpSet replay integration', () => {
         answers={{}}
         provenanceState={replayState as never}
         setAnswer={setAnswer}
+        setProvenance={() => null}
         useTrrack={vi.fn() as never}
       />,
     );

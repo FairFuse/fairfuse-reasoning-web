@@ -599,6 +599,7 @@ describe('ScreenRecordingPermission component', () => {
         parameters: undefined,
         answers: {},
         useTrrack: vi.fn(),
+        setProvenance: () => null,
       } as React.ComponentProps<typeof ScreenRecordingPermission>),
     );
 
@@ -629,6 +630,7 @@ describe('ScreenRecordingPermission component', () => {
         parameters: undefined,
         answers: {},
         useTrrack: vi.fn(),
+        setProvenance: () => null,
       } as React.ComponentProps<typeof ScreenRecordingPermission>),
     );
 

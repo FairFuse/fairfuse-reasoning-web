@@ -378,7 +378,7 @@ function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
             <h4 style={{ margin: 0, padding: 0 }}>Task</h4>
           </Box>
           <Box flex={1} style={{ overflow: 'auto' }}>
-            <AppNavBar width={349} top={0} sidebarOpen />
+            <AppNavBar width={349} top={0} bottom={0} sidebarOpen />
           </Box>
         </Flex>
       </Flex>

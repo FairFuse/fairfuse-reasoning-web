@@ -208,7 +208,8 @@ export interface StimulusParams<T, S = never> {
     answers: StoredAnswer['answer'],
     reason?: StimulusIssueReason,
     message?: string,
-  }) => void
+  }) => void;
+  setProvenance: (provenanceGraph: TrrackedProvenance) => void
 }
 
 export interface CustomResponseField<TValue extends JsonValue = JsonValue> {

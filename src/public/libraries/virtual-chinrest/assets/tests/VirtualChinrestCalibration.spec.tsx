@@ -79,6 +79,7 @@ describe('VirtualChinrestCalibration replay', () => {
             answer: { pixelsPerMM: 4 },
           },
         } as never}
+        setProvenance={() => null}
         setAnswer={vi.fn()}
         useTrrack={useTrrack}
       />,
@@ -105,6 +106,7 @@ describe('VirtualChinrestCalibration replay', () => {
       <VirtualChinrestCalibration
         {...props}
         provenanceState={{ itemWidthPx: 250, isCalibrationComplete: false }}
+        setProvenance={() => null}
       />,
     );
 
@@ -115,6 +117,7 @@ describe('VirtualChinrestCalibration replay', () => {
       <VirtualChinrestCalibration
         {...props}
         provenanceState={{ itemWidthPx: 420, isCalibrationComplete: true }}
+        setProvenance={() => null}
       />,
     );
     await waitFor(() => expect(getByTestId('slider').getAttribute('data-value')).toBe('420'));
@@ -145,6 +148,7 @@ describe('VirtualChinrestCalibration replay', () => {
       <ViewingDistanceCalibration
         {...props}
         provenanceState={{ ballPosition: 600, ballPositions: [600], viewingDistance: null }}
+        setProvenance={() => null}
       />,
     );
 
@@ -158,6 +162,7 @@ describe('VirtualChinrestCalibration replay', () => {
           ballPositions: [600, 550, 500, 450, 400],
           viewingDistance: 500,
         }}
+          setProvenance={() => null}
       />,
     );
     await waitFor(() => expect(getByText(/Remaining measurements:/).textContent).toContain('0'));
@@ -183,6 +188,7 @@ describe('VirtualChinrestCalibration replay', () => {
         provenanceState={{ ballPosition: 500 } as never}
         setAnswer={vi.fn()}
         useTrrack={useTrrack}
+        setProvenance={() => null}
       />,
     );
 
