@@ -19,26 +19,27 @@ export function InputLabel({
   clearSelectionButton?: ReactNode;
 }) {
   return (
-    <Flex
-      direction="row"
-      wrap="nowrap"
-      gap={4}
-      align="center"
-      style={{
-        display: 'inline-flex',
-        maxWidth: '100%',
-      }}
-    >
-      {required && (
+    <div>
+      <Flex
+        direction="row"
+        wrap="nowrap"
+        gap={4}
+        align="flex-start"
+        style={{
+          display: 'inline-flex',
+          maxWidth: '100%',
+        }}
+      >
+        {required && (
         <Box component="span" className="required-asterisk" ml={-10}>
           *
         </Box>
-      )}
-      {enumerateQuestions && <Box style={{ minWidth: 'fit-content', fontSize: 16, fontWeight: 500 }}>{`${index}. `}</Box>}
-      <Box style={{ display: 'block' }} className="no-last-child-bottom-padding">
-        <ReactMarkdownWrapper text={prompt} />
-      </Box>
-      {(infoText || clearSelectionButton) && (
+        )}
+        {enumerateQuestions && <Box style={{ minWidth: 'fit-content', fontSize: 16, fontWeight: 500 }}>{`${index}. `}</Box>}
+        <Box style={{ display: 'block' }} className="no-last-child-bottom-padding">
+          <ReactMarkdownWrapper text={prompt} />
+        </Box>
+        {infoText && (
         <Flex
           align="center"
           gap={4}
@@ -48,9 +49,13 @@ export function InputLabel({
               <IconInfoCircle size={16} opacity={0.5} />
             </Tooltip>
           )}
-          {clearSelectionButton}
         </Flex>
-      )}
-    </Flex>
+        )}
+
+      </Flex>
+
+      {clearSelectionButton}
+    </div>
+
   );
 }

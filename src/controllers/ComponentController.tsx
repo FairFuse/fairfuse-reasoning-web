@@ -6,6 +6,7 @@ import {
   Box, Center, Loader, Text, Title,
 } from '@mantine/core';
 import { IconPlugConnectedX } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
 import { ResponseBlock } from '../components/response/ResponseBlock';
 import { IframeController } from './IframeController';
 import { ImageController } from './ImageController';
@@ -187,9 +188,27 @@ export function ComponentController() {
       return currentConfig
         ? generateStimulusErrorMessage(currentConfig, stimulusValidation, { showStimulusErrors })
         : null;
+      // return message;
     },
     [currentConfig, isAnalysis, showStimulusErrors, stimulusValidation],
   );
+  useEffect(() => {
+    if (stimulusMessage) {
+      notifications.show({
+        id: 'stimulusMessage',
+        message: stimulusMessage,
+        allowClose: true,
+        withBorder: true,
+        position: 'bottom-left',
+        radius: 'xl',
+        autoClose: false,
+        bg: 'red',
+        styles: (theme) => ({ description: { color: theme.white, fontWeight: 'bold' }, closeButton: { color: theme.white, backgroundColor: 'red' } }),
+      });
+    } else {
+      notifications.hide('stimulusMessage');
+    }
+  }, [stimulusMessage]);
   const hasStimulusIssue = useMemo(
     () => !!stimulusMessage,
     [stimulusMessage],
@@ -205,10 +224,10 @@ export function ComponentController() {
 
     return {
       ...componentContainerStyle,
-      border: '1px solid var(--mantine-color-red-3)',
-      backgroundColor: 'var(--mantine-color-red-0)',
-      borderRadius: 'var(--mantine-radius-md)',
-      padding: 'var(--mantine-spacing-sm)',
+      // border: '1px solid var(--mantine-color-red-3)',
+      // backgroundColor: 'var(--mantine-color-red-0)',
+      // borderRadius: 'var(--mantine-radius-md)',
+      // padding: 'var(--mantine-spacing-sm)',
     };
   }, [componentContainerStyle, hasStimulusIssue]);
 
@@ -311,6 +330,7 @@ export function ComponentController() {
       <Box
         id={currentComponent}
         className={currentConfig.type}
+        pos="relative"
         style={stimulusContainerStyle}
       >
         <Suspense key={`${currentStep}-stimulus`} fallback={<div>Loading...</div>}>
@@ -324,9 +344,17 @@ export function ComponentController() {
           </>
         </Suspense>
         {hasStimulusIssue && (
-          <Text c="red" size="sm" mt="xs">
-            {stimulusMessage}
-          </Text>
+          <div style={{
+            position: 'absolute',
+            top: -12,
+            bottom: -12,
+            left: -12,
+            right: -12,
+            outline: '5px solid #FF0000',
+            zIndex: 200000,
+            pointerEvents: 'none',
+          }}
+          />
         )}
       </Box>
 
