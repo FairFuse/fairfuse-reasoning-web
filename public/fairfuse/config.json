@@ -67,16 +67,18 @@
         {
           "id": "mostUnfair",
           "type": "radio",
-          "prompt": "Which of the 3 rankings is the <strong>most unfair</strong>?",
+          "prompt": "Which of the 3 rankings is the <strong>most unfair</strong>? Please verbalize your thoughts, process, and reason.",
           "options": ["Math", "Reading", "Writing"],
           "location": "sidebar"
         },
         {
-          "id": "mostUnfairReason",
-          "type": "longText",
-          "prompt": "Please express why it is unfair: (You may think-aloud)",
-          "location": "sidebar",
-          "required": false
+          "id": "mostUnfairVerbalizedConfirm",
+          "type": "checkbox",
+          "prompt": "Confirmation",
+          "options": ["I have verbalized my thoughts"],
+          "minSelections": 1,
+          "maxSelections": 1,
+          "location": "sidebar"
         }
       ]
     },
@@ -110,13 +112,16 @@
         {
           "id": "candidateName",
           "type": "reactive",
-          "prompt": "Select the candidate with <strong>most disagreement</strong> between <strong>Math</strong> and <strong>Reading</strong> rankings. (You can hover over a candidate to find their name)",
+          "prompt": "Select the candidate with <strong>most disagreement</strong> between <strong>Math</strong> and <strong>Reading</strong> rankings. (Click on the candidate's name on the right) Please verbalize your thoughts, process, and reason.",
           "location": "sidebar"
         },
         {
-          "id": "candidateDisagreementReason",
-          "type": "longText",
-          "prompt": "Please explain how you deduced your answer:",
+          "id": "candidateDisagreementVerbalizedConfirm",
+          "type": "checkbox",
+          "prompt": "Confirmation",
+          "options": ["I have verbalized my thoughts"],
+          "minSelections": 1,
+          "maxSelections": 1,
           "location": "sidebar"
         }
       ]
@@ -127,14 +132,17 @@
         {
           "id": "mostDissimilarBase",
           "type": "radio",
-          "prompt": "<strong>Step 1:</strong> Generate a consensus ranking using the button on the left sidebar.<br/><strong>Step 2:</strong> Use the pin icon in the heading of the generated ranking to pin the ranking.<br/><strong>Step 3:</strong> Which base ranking is most dissimilar to the consensus ranking you just generated?",
+          "prompt": "<strong>Step 1:</strong> Generate a consensus ranking using the button on the left sidebar.<br/><strong>Step 2:</strong> Use the pin icon in the heading of the generated ranking to pin the ranking.<br/><strong>Step 3:</strong> Which base ranking is most dissimilar to the consensus ranking you just generated? Please verbalize your thoughts, process, and reason.",
           "options": ["Math", "Reading", "Writing"],
           "location": "sidebar"
         },
         {
-          "id": "mostDissimilarReason",
-          "type": "longText",
-          "prompt": "Please explain why you think so:",
+          "id": "mostDissimilarVerbalizedConfirm",
+          "type": "checkbox",
+          "prompt": "Confirmation",
+          "options": ["I have verbalized my thoughts"],
+          "minSelections": 1,
+          "maxSelections": 1,
           "location": "sidebar"
         }
       ]
@@ -145,13 +153,16 @@
         {
           "id": "finalConsensusRanking",
           "type": "shortText",
-          "prompt": "Generate a fair consensus ranking that is representative of all base rankings and does not over or under advantage race groups. Enter the name of your chosen consensus ranking (e.g. CON#1):",
+          "prompt": "Generate a fair consensus ranking that is representative of all base rankings and does not over or under advantage race groups. Enter the name of your chosen consensus ranking (e.g. CON#1). Please verbalize your thoughts, process, and reasoning as you work throught this task.",
           "location": "sidebar"
         },
         {
-          "id": "freeGenerationStrategy",
-          "type": "longText",
-          "prompt": "When complete, please describe how you approached the task, including any fairness issues you found and how you resolved them:",
+          "id": "finalConsensusRankingVerbalizedConfirm",
+          "type": "checkbox",
+          "prompt": "Confirmation",
+          "options": ["I have verbalized my thoughts"],
+          "minSelections": 1,
+          "maxSelections": 1,
           "location": "sidebar"
         }
       ]
