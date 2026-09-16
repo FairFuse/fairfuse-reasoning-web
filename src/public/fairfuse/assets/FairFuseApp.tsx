@@ -12,6 +12,7 @@ import type {
 import {
   buildGroupArrays, formatColLabel, generateGroupColors, parseCsv, sortByColRank,
 } from './utils';
+import { consensus, fairnessMetrics, similarityMetrics } from './fairRanking';
 import RankingView from './components/RankingView';
 import SimilarityHeatmapPair from './components/SimilarityHeatmapPair';
 import { AppNavBar } from '../../../components/interface/AppNavBar';
@@ -83,19 +84,16 @@ function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
     const { ids, groupIds } = buildGroupArrays(candidates);
     const groups = [ids, groupIds];
 
-    fetch('http://localhost:8001/fairness-metrics', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rankings: allRankings, groups }),
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        setColFairnessMap(() => {
-          const next: Record<string, ColFairness> = {};
-          allCols.forEach((col, i) => { next[col] = { arp: data.arp[i], fpr: data.fpr[i] }; });
-          return next;
-        });
+    try {
+      const data = fairnessMetrics({ rankings: allRankings, groups });
+      setColFairnessMap(() => {
+        const next: Record<string, ColFairness> = {};
+        allCols.forEach((col, i) => { next[col] = { arp: data.arp[i], fpr: data.fpr[i] }; });
+        return next;
       });
+    } catch (e) {
+      console.error('fairness metrics failed', e);
+    }
   }, [candidates, rankingCols, generatedRankings]);
 
   useEffect(() => {
@@ -104,13 +102,11 @@ function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
     const rankings = rankingCols.map((col) => sortByColRank(candidates, col).map((c) => c.id));
     const consensusRankings = generatedRankings.map((gr) => [...candidates].sort((a, b) => (gr.rankById[a.id] ?? 9999) - (gr.rankById[b.id] ?? 9999)).map((c) => c.id));
 
-    fetch('http://localhost:8001/similarity-metrics', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rankings: [...rankings, ...consensusRankings] }),
-    })
-      .then((r) => r.json())
-      .then((data) => { setSimilarityMatrix(data); });
+    try {
+      setSimilarityMatrix(similarityMetrics({ rankings: [...rankings, ...consensusRankings] }));
+    } catch (e) {
+      console.error('similarity metrics failed', e);
+    }
   }, [candidates, rankingCols, generatedRankings]);
 
   useEffect(() => {
@@ -144,14 +140,15 @@ function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
       const rankings = rankingCols.map((col) => sortByColRank(candidates, col).map((c) => c.id));
       const { ids, groupIds } = buildGroupArrays(candidates);
       const groups = [ids, groupIds];
-      const res = await fetch('http://localhost:8001/consensus', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rankings, groups, arpThreshold: maxArp === null ? 1 : arpThreshold }),
+      // let the `generating` state paint before the synchronous solve blocks the thread
+      await new Promise((resolve) => { setTimeout(resolve, 0); });
+      const data = consensus({
+        rankings,
+        groups,
+        arpThreshold: maxArp === null ? 1 : arpThreshold,
       });
-      const data = await res.json();
       const rankById: Record<number, number> = {};
-      (data.ranking as number[]).forEach((id, idx) => { rankById[id] = idx + 1; });
+      data.ranking.forEach((id, idx) => { rankById[id] = idx + 1; });
       setGeneratedRankings((prev) => {
         const lastUnpinnedIdx = prev.reduce((acc, gr, i) => (!gr.pinned ? i : acc), -1);
         if (lastUnpinnedIdx !== -1) {
