@@ -15,6 +15,7 @@ export function Timer({
   xScale,
   isTagging = false,
   onRegionDrawn,
+  onDragStart,
 }: {
   width: number;
   height: number;
@@ -23,6 +24,7 @@ export function Timer({
   xScale: d3.ScaleLinear<number, number>;
   isTagging?: boolean;
   onRegionDrawn?: (region: DraftRegion) => void;
+  onDragStart?: (time: number) => void;
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const fullLineRef = useRef<SVGLineElement | null>(null);
@@ -83,8 +85,10 @@ export function Timer({
       e.preventDefault();
       const time = getSeekTimeFromSvgPosition(e.clientX, e.currentTarget.getBoundingClientRect().left, xScale);
       setDrag({ anchor: time, current: time });
+      // Called here, inside the gesture, so the browser allows playback to start.
+      onDragStart?.(time);
     },
-    [isTagging, xScale],
+    [isTagging, xScale, onDragStart],
   );
 
   // Track the drag on the window so releasing outside the svg still finalizes it.

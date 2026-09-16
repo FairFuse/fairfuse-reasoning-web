@@ -56,6 +56,7 @@ export function AudioProvenanceVis({
   selectedRegionId = null,
   onRegionDrawn,
   onSelectRegion,
+  onDragStart,
 }: {
   setTimeString: (time: string) => void;
   answers: Record<string, StoredAnswer>;
@@ -70,6 +71,7 @@ export function AudioProvenanceVis({
   selectedRegionId?: string | null;
   onRegionDrawn?: (region: DraftRegion) => void;
   onSelectRegion?: (region: TimelineTagRegion) => void;
+  onDragStart?: (time: number) => void;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const routerLocation = useLocation();
@@ -404,7 +406,7 @@ export function AudioProvenanceVis({
             ) : null}
           {xScale ? (
             <Box pos="absolute" top={0} style={{ zIndex: 1 }}>
-              <Timer height={80} width={width} xScale={xScale} debounceUpdateTimer={_setPlayTime} margin={margin} isTagging={isTagging} onRegionDrawn={onRegionDrawn} />
+              <Timer height={80} width={width} xScale={xScale} debounceUpdateTimer={_setPlayTime} margin={margin} isTagging={isTagging} onRegionDrawn={onRegionDrawn} onDragStart={onDragStart} />
             </Box>
           ) : null}
 

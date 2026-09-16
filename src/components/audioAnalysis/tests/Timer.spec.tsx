@@ -29,6 +29,7 @@ const margin = {
 
 function renderTimer(isTagging: boolean) {
   const onRegionDrawn = vi.fn();
+  const onDragStart = vi.fn();
 
   const { container } = render(
     <Timer
@@ -39,6 +40,7 @@ function renderTimer(isTagging: boolean) {
       xScale={xScale}
       isTagging={isTagging}
       onRegionDrawn={onRegionDrawn}
+      onDragStart={onDragStart}
     />,
   );
 
@@ -46,7 +48,7 @@ function renderTimer(isTagging: boolean) {
   // jsdom gives every element a zero-sized rect, so clientX is already svg-relative.
   svg.getBoundingClientRect = () => ({ left: 0, top: 0 }) as DOMRect;
 
-  return { svg, onRegionDrawn };
+  return { svg, onRegionDrawn, onDragStart };
 }
 
 describe('Timer', () => {
@@ -64,6 +66,35 @@ describe('Timer', () => {
     fireEvent.click(svg, { clientX: 300 });
 
     expect(setSeekTime).not.toHaveBeenCalled();
+  });
+
+  test('reports the drag start time as soon as the drag begins', () => {
+    const { svg, onDragStart } = renderTimer(true);
+
+    fireEvent.mouseDown(svg, { clientX: 250, button: 0 });
+
+    expect(onDragStart).toHaveBeenCalledWith(25);
+  });
+
+  test('does not report a drag start when tagging is off', () => {
+    const { svg, onDragStart } = renderTimer(false);
+
+    fireEvent.mouseDown(svg, { clientX: 250, button: 0 });
+
+    expect(onDragStart).not.toHaveBeenCalled();
+  });
+
+  test('reports the drag start before the region is known', () => {
+    const { svg, onDragStart, onRegionDrawn } = renderTimer(true);
+
+    fireEvent.mouseDown(svg, { clientX: 100, button: 0 });
+
+    expect(onDragStart).toHaveBeenCalled();
+    expect(onRegionDrawn).not.toHaveBeenCalled();
+
+    fireEvent.mouseUp(window, { clientX: 400 });
+
+    expect(onRegionDrawn).toHaveBeenCalledWith({ start: 10, end: 40, duration: 30 });
   });
 
   test('dragging reports a region', () => {

@@ -473,6 +473,14 @@ export function ThinkAloudFooter({
     };
   }, [auth.user.user?.email, participantId, pullParticipantTags, storageEngine, studyId]);
 
+  // Seeking and playing must happen inside the user gesture that triggered them:
+  // browsers reject a play() that comes later, from a React effect, and useReplay
+  // quietly flips isPlaying back to false when that rejection lands.
+  const startPlaybackAt = useCallback((time: number) => {
+    setSeekTime(time);
+    setIsPlaying(true);
+  }, [setSeekTime, setIsPlaying]);
+
   const onRegionDrawn = useCallback((draft: DraftRegion) => {
     const region: TimelineTagRegion = {
       id: uuidv4(),
@@ -486,7 +494,8 @@ export function ThinkAloudFooter({
     setDraftRegion(region);
     setSelectedRegionId(region.id);
     setIsTagging(false);
-  }, []);
+    startPlaybackAt(region.start);
+  }, [startPlaybackAt]);
 
   const updateSelectedRegion = useCallback((changes: Partial<TimelineTagRegion>) => {
     if (!selectedRegion) {
@@ -555,19 +564,12 @@ export function ThinkAloudFooter({
       }
     };
 
-    const range = loopRangeRef.current;
-    if (range) {
-      setSeekTime(range.start);
-      // Selecting a region plays it back straight away rather than waiting on the user.
-      setIsPlaying(true);
-    }
-
     replayEvent.on('timeupdate', onTime);
 
     return () => {
       replayEvent.off('timeupdate', onTime);
     };
-  }, [selectedRegionId, replayEvent, setSeekTime, setIsPlaying]);
+  }, [selectedRegionId, replayEvent, setSeekTime]);
 
   useEffect(() => {
     const t = transcriptLines ? transcriptLines[jumpedToLine]?.start || 0 : 0;
@@ -669,9 +671,15 @@ export function ThinkAloudFooter({
           timelineTags={timelineTags || []}
           selectedRegionId={selectedRegionId}
           onRegionDrawn={onRegionDrawn}
+          onDragStart={startPlaybackAt}
           onSelectRegion={(region) => {
             setIsTagging(false);
-            setSelectedRegionId((current) => (current === region.id ? null : region.id));
+            if (selectedRegionId === region.id) {
+              closeRegionEditor();
+              return;
+            }
+            setSelectedRegionId(region.id);
+            startPlaybackAt(region.start);
           }}
         />
         {xScale && transcriptLines ? <TranscriptSegmentsVis startTime={xScale.domain()[0]} xScale={xScale} transcriptLines={transcriptLines} currentShownTranscription={currentShownTranscription || 0} /> : null}
