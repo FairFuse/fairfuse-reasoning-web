@@ -17,6 +17,7 @@ import SimilarityHeatmapPair from './components/SimilarityHeatmapPair';
 import { AppNavBar } from '../../../components/interface/AppNavBar';
 import { StimulusParams } from '../../../store/types';
 import { SharedStateProvider, useSharedState } from './SharedStateContext';
+import { RecordingStatus } from '../../../components/interface/RecordingStatus';
 
 function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
   const {
@@ -414,6 +415,9 @@ function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
                 : null
             }
           />
+
+          <RecordingStatus />
+
         </Box>
         <Box
           flex="1 1 0"

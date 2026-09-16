@@ -12,14 +12,11 @@ import {
   Space,
   Title,
   Tooltip,
-  Text,
 } from '@mantine/core';
 import {
   IconChartHistogram,
   IconDotsVertical,
   IconMail,
-  IconMicrophone,
-  IconMicrophoneOff,
   IconSchema,
   IconUserPlus,
 } from '@tabler/icons-react';
@@ -35,13 +32,12 @@ import { useStorageEngine } from '../../storage/storageEngineHooks';
 import { calculateProgressData } from '../../storage/engines/utils/storageEngineHelpers';
 import { PREFIX } from '../../utils/Prefix';
 import { getNewParticipant } from '../../utils/nextParticipant';
-import { RecordingAudioWaveform } from './RecordingAudioWaveform';
 import { studyComponentToIndividualComponent } from '../../utils/handleComponentInheritance';
 import { useRecordingContext } from '../../store/hooks/useRecording';
 import { hideNotification, showNotification } from '../../utils/notifications';
 import { getMutedInstruction } from '../../utils/recordingWarnings';
-import classes from './AppHeader.module.css';
 import { useDeviceRules } from '../../utils/useDeviceRules';
+import { RecordingStatus } from './RecordingStatus';
 import {
   DEFAULT_FIREBASE_WARNING_MESSAGE,
   DEFAULT_SUPABASE_WARNING_MESSAGE,
@@ -109,17 +105,9 @@ export function AppHeader({
   const lastProgressRef = useRef<number>(0);
 
   const {
-    isScreenRecording,
-    isAudioRecording,
-    setIsMuted,
     isMuted,
     clickToRecord,
     isSpeakingWhileMuted,
-    showMutedWarning,
-    screenRecordingError,
-    audioRecordingError,
-    currentComponentHasAudioRecording,
-    audioStatus,
   } = useRecordingContext();
   const {
     isBrowserAllowed,
@@ -131,20 +119,6 @@ export function AppHeader({
     && (!isBrowserAllowed || !isDeviceAllowed || !isInputAllowed || !isDisplayAllowed);
   const showDefaultFirebaseWarning = shouldWarnForDefaultFirebaseConfig();
   const showDefaultSupabaseWarning = shouldWarnForDefaultSupabaseConfig();
-  const isScreenRecordingPermission = currentComponent === '$screen-recording.components.screenRecordingPermission';
-  const showAudioStatus = currentComponentHasAudioRecording
-    || isAudioRecording
-    || (isScreenRecordingPermission && audioStatus !== 'idle');
-  const showRecordingStatus = showAudioStatus || isScreenRecording || !!screenRecordingError;
-  const isAudioActivelyRecording = audioStatus === 'recording' && !isMuted;
-  let recordingLabel = '';
-  if (isScreenRecording && isAudioActivelyRecording) {
-    recordingLabel = 'Recording screen and audio';
-  } else if (isScreenRecording) {
-    recordingLabel = 'Recording screen';
-  } else if (isAudioActivelyRecording) {
-    recordingLabel = 'Recording audio';
-  }
 
   useEffect(() => {
     if (!(isMuted && isSpeakingWhileMuted)) return undefined;
@@ -240,32 +214,7 @@ export function AppHeader({
 
         <Grid.Col span={4}>
           <Group wrap="nowrap" justify="right">
-            {showRecordingStatus && (
-
-              <Group ml="xl" gap={20} wrap="nowrap">
-                {recordingLabel && <Text c="red" size="sm">{recordingLabel}</Text>}
-                {screenRecordingError && <Text c="red" size="sm" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{screenRecordingError}</Text>}
-                {audioStatus === 'denied' && audioRecordingError && <Text c="red" size="sm" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{audioRecordingError}</Text>}
-                {audioStatus === 'recording' && !isMuted && <RecordingAudioWaveform />}
-                {clickToRecord && showAudioStatus && (audioStatus === 'denied' ? (
-                  <ActionIcon color="red" variant="light" size="md" aria-label="Microphone error" data-disabled aria-disabled tabIndex={-1}>
-                    <IconMicrophoneOff style={{ width: '70%', height: '70%' }} stroke={1.5} />
-                  </ActionIcon>
-                ) : audioStatus === 'pending' ? (
-                  <Tooltip label="Microphone not enabled yet">
-                    <ActionIcon color="gray" variant="light" size="md" aria-label="Microphone pending" data-disabled aria-disabled tabIndex={-1}>
-                      <IconMicrophoneOff style={{ width: '70%', height: '70%' }} stroke={1.5} />
-                    </ActionIcon>
-                  </Tooltip>
-                ) : (
-                  <Tooltip label={showMutedWarning ? 'You are still muted. Press and hold to unmute.' : 'Press and hold to unmute.'} opened={showMutedWarning || undefined}>
-                    <ActionIcon className={showMutedWarning ? classes.micBlink : undefined} color="blue" variant="light" size="md" aria-label="Click and hold to unmute microphone" onMouseDown={() => setIsMuted(false)} onMouseUp={() => setIsMuted(true)} onTouchStart={() => setIsMuted(false)} onTouchEnd={() => setIsMuted(true)}>
-                      {isMuted ? <IconMicrophoneOff style={{ width: '70%', height: '70%' }} stroke={1.5} /> : <IconMicrophone style={{ width: '70%', height: '70%' }} stroke={1.5} />}
-                    </ActionIcon>
-                  </Tooltip>
-                ))}
-              </Group>
-            )}
+            <RecordingStatus />
             {storageEngineFailedToConnect && <Tooltip multiline withArrow arrowSize={6} w={300} label="Failed to connect to the storage engine. Study data will not be saved. Check your connection or restart the app."><Badge size="lg" color="red">Storage Disconnected</Badge></Tooltip>}
             {showDefaultFirebaseWarning && (
               <Tooltip multiline withArrow arrowSize={6} w={360} label={DEFAULT_FIREBASE_WARNING_MESSAGE}>
