@@ -6,7 +6,7 @@ import testConfigSimple from '../../storage/tests/testConfigSimple.json';
 import { generateSequenceArray } from '../../utils/handleRandomSequences';
 import { LocalStorageEngine } from '../../storage/engines/LocalStorageEngine';
 import { StorageEngine } from '../../storage/engines/types';
-import { Tag, TaglessEditedText } from '../individualStudy/thinkAloud/types';
+import { Tag, TaglessEditedText, TimelineTagRegion } from '../individualStudy/thinkAloud/types';
 
 const studyId = 'test-study-think-aloud';
 const configSimple = testConfigSimple as StudyConfig;
@@ -123,6 +123,84 @@ describe.each([
 
     const afterRemove = await storageEngine.getAllParticipantAndTaskTags(ownerKey, participantId);
     expect(afterRemove.taskTags.taskA).toEqual([taskTag1]);
+  });
+
+  test('add/update/remove timeline tag regions', async () => {
+    const participant = await storageEngine.initializeParticipantSession({}, configSimple, participantMetadata);
+    const { participantId } = participant;
+
+    const regionA: TimelineTagRegion = {
+      id: 'r-1', tagId: 'tl-1', start: 2, duration: 3, end: 5, comment: '',
+    };
+    const regionB: TimelineTagRegion = {
+      id: 'r-2', tagId: 'tl-2', start: 4, duration: 4, end: 8, comment: 'overlaps A',
+    };
+
+    await storageEngine.saveAllParticipantAndTaskTags(ownerKey, participantId, {
+      participantTags: [],
+      taskTags: {},
+      timelineTags: { taskA: [regionA, regionB] },
+    });
+
+    const afterAdd = await storageEngine.getAllParticipantAndTaskTags(ownerKey, participantId);
+    expect(afterAdd.timelineTags?.taskA).toEqual([regionA, regionB]);
+
+    // Annotating a region keeps its bounds intact.
+    await storageEngine.saveAllParticipantAndTaskTags(ownerKey, participantId, {
+      participantTags: [],
+      taskTags: {},
+      timelineTags: { taskA: [{ ...regionA, comment: 'a note' }, regionB] },
+    });
+
+    const afterComment = await storageEngine.getAllParticipantAndTaskTags(ownerKey, participantId);
+    expect(afterComment.timelineTags?.taskA[0]).toEqual({ ...regionA, comment: 'a note' });
+
+    // Deleting down to an empty list must persist, not silently keep the old value.
+    await storageEngine.saveAllParticipantAndTaskTags(ownerKey, participantId, {
+      participantTags: [],
+      taskTags: {},
+      timelineTags: { taskA: [] },
+    });
+
+    const afterDelete = await storageEngine.getAllParticipantAndTaskTags(ownerKey, participantId);
+    expect(afterDelete.timelineTags?.taskA).toEqual([]);
+  });
+
+  test('timeline tag regions are scoped per task', async () => {
+    const participant = await storageEngine.initializeParticipantSession({}, configSimple, participantMetadata);
+    const { participantId } = participant;
+
+    const regionA: TimelineTagRegion = {
+      id: 'r-1', tagId: 'tl-1', start: 0, duration: 1, end: 1, comment: '',
+    };
+    const regionB: TimelineTagRegion = {
+      id: 'r-2', tagId: 'tl-1', start: 9, duration: 1, end: 10, comment: '',
+    };
+
+    await storageEngine.saveAllParticipantAndTaskTags(ownerKey, participantId, {
+      participantTags: [],
+      taskTags: {},
+      timelineTags: { taskA: [regionA], taskB: [regionB] },
+    });
+
+    const saved = await storageEngine.getAllParticipantAndTaskTags(ownerKey, participantId);
+    expect(saved.timelineTags?.taskA).toEqual([regionA]);
+    expect(saved.timelineTags?.taskB).toEqual([regionB]);
+  });
+
+  test('documents saved before timeline tagging load without timelineTags', async () => {
+    const participant = await storageEngine.initializeParticipantSession({}, configSimple, participantMetadata);
+    const { participantId } = participant;
+
+    // A legacy document, written before the timelineTags field existed.
+    await storageEngine.saveAllParticipantAndTaskTags(ownerKey, participantId, {
+      participantTags: [{ id: 'p-1', name: 'Hesitation', color: '#FF0000' } as Tag],
+      taskTags: {},
+    });
+
+    const loaded = await storageEngine.getAllParticipantAndTaskTags(ownerKey, participantId);
+    expect(loaded.timelineTags).toBeUndefined();
+    expect(loaded.timelineTags?.taskA ?? []).toEqual([]);
   });
 
   test('participant/task tags are isolated per participant', async () => {

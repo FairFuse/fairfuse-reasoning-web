@@ -5,6 +5,7 @@ import {
 import { useReplayContext } from '../../store/hooks/useReplay';
 import { youtubeReadableDuration } from '../../utils/humanReadableDuration';
 import { getSeekTimeFromSvgPosition } from './timerPosition';
+import { DraftRegion, makeRegionFromDrag } from './timelineTagging';
 
 export function Timer({
   width,
@@ -12,18 +13,23 @@ export function Timer({
   margin,
   debounceUpdateTimer,
   xScale,
+  isTagging = false,
+  onRegionDrawn,
 }: {
   width: number;
   height: number;
   margin: { left: number, right: number, top: number, bottom: number };
   debounceUpdateTimer: (time: number, percent: number | undefined) => void;
   xScale: d3.ScaleLinear<number, number>;
+  isTagging?: boolean;
+  onRegionDrawn?: (region: DraftRegion) => void;
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const fullLineRef = useRef<SVGLineElement | null>(null);
   const timelineRef = useRef<SVGLineElement | null>(null);
   const timerHorizontalRef = useRef<SVGLineElement | null>(null);
   const [hoverInfo, setHoverInfo] = useState<{ clientX: number; svgTop: number; svgX: number; time: number } | null>(null);
+  const [drag, setDrag] = useState<{ anchor: number; current: number } | null>(null);
 
   const { setSeekTime, replayEvent, forceEmitTimeUpdate } = useReplayContext();
 
@@ -51,13 +57,67 @@ export function Timer({
     forceEmitTimeUpdate();
   }, [forceEmitTimeUpdate]);
 
+  // Leaving tagging mode mid-drag should not leave a dangling selection behind.
+  useEffect(() => {
+    if (!isTagging) {
+      setDrag(null);
+    }
+  }, [isTagging]);
+
   const clickOnSvg = useCallback(
     (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+      if (isTagging) {
+        return;
+      }
       const svgLeftOffset = e.currentTarget.getBoundingClientRect().left;
       setSeekTime(getSeekTimeFromSvgPosition(e.clientX, svgLeftOffset, xScale));
     },
-    [xScale, setSeekTime],
+    [xScale, setSeekTime, isTagging],
   );
+
+  const onMouseDown = useCallback(
+    (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+      if (!isTagging || e.button !== 0) {
+        return;
+      }
+      e.preventDefault();
+      const time = getSeekTimeFromSvgPosition(e.clientX, e.currentTarget.getBoundingClientRect().left, xScale);
+      setDrag({ anchor: time, current: time });
+    },
+    [isTagging, xScale],
+  );
+
+  // Track the drag on the window so releasing outside the svg still finalizes it.
+  useEffect(() => {
+    if (!drag || !isTagging) {
+      return undefined;
+    }
+
+    const svgLeftOffset = () => svgRef.current?.getBoundingClientRect().left ?? 0;
+
+    const onWindowMove = (e: MouseEvent) => {
+      setDrag((current) => (current
+        ? { ...current, current: getSeekTimeFromSvgPosition(e.clientX, svgLeftOffset(), xScale) }
+        : current));
+    };
+
+    const onWindowUp = (e: MouseEvent) => {
+      const end = getSeekTimeFromSvgPosition(e.clientX, svgLeftOffset(), xScale);
+      const region = makeRegionFromDrag(drag.anchor, end, xScale.domain()[1]);
+      setDrag(null);
+      if (region && onRegionDrawn) {
+        onRegionDrawn(region);
+      }
+    };
+
+    window.addEventListener('mousemove', onWindowMove);
+    window.addEventListener('mouseup', onWindowUp);
+
+    return () => {
+      window.removeEventListener('mousemove', onWindowMove);
+      window.removeEventListener('mouseup', onWindowUp);
+    };
+  }, [drag, isTagging, onRegionDrawn, xScale]);
 
   const onMouseMove = useCallback(
     (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
@@ -72,6 +132,9 @@ export function Timer({
 
   const onMouseLeave = useCallback(() => setHoverInfo(null), []);
 
+  const dragStartX = drag ? xScale(Math.min(drag.anchor, drag.current)) : 0;
+  const dragEndX = drag ? xScale(Math.max(drag.anchor, drag.current)) : 0;
+
   return (
     <>
       <svg
@@ -79,10 +142,11 @@ export function Timer({
         data-testid="replay-timer"
         data-replay-time="0"
         onClick={clickOnSvg}
+        onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseLeave={onMouseLeave}
         style={{
-          width, height, position: 'absolute', zIndex: 10000, display: 'block',
+          width, height, position: 'absolute', zIndex: 10000, display: 'block', cursor: isTagging ? 'col-resize' : 'default',
         }}
       >
         <line
@@ -105,6 +169,19 @@ export function Timer({
           stroke="cornflowerblue"
         />
         <line ref={fullLineRef} stroke="cornflowerblue" strokeWidth={3} y1={0} y2={height} />
+        {drag && dragEndX > dragStartX && (
+          <rect
+            data-testid="timeline-tag-draft"
+            x={dragStartX}
+            width={dragEndX - dragStartX}
+            y={0}
+            height={height}
+            fill="cornflowerblue"
+            fillOpacity={0.25}
+            stroke="cornflowerblue"
+            strokeWidth={1}
+          />
+        )}
         {hoverInfo && hoverInfo.svgX >= margin.left && hoverInfo.svgX <= width - margin.right && (
           <line x1={hoverInfo.svgX} x2={hoverInfo.svgX} y1={0} y2={height} stroke="black" strokeWidth={1} />
         )}

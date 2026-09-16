@@ -10,17 +10,19 @@ import {
 } from '@mantine/core';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import {
-  useCallback, useEffect, useMemo, useState,
+  useCallback, useEffect, useMemo, useRef, useState,
 } from 'react';
+import debounce from 'lodash.debounce';
+import { v4 as uuidv4 } from 'uuid';
 import * as d3 from 'd3';
 
 import {
-  IconArrowLeft, IconArrowRight, IconDeviceDesktopDown, IconInfoCircle, IconMusicDown, IconPalette, IconPlayerPauseFilled, IconPlayerPlayFilled, IconRestore,
+  IconArrowLeft, IconArrowRight, IconDeviceDesktopDown, IconInfoCircle, IconMusicDown, IconPalette, IconPlayerPauseFilled, IconPlayerPlayFilled, IconRestore, IconTimelineEvent,
 } from '@tabler/icons-react';
 import { useAsync } from '../../../store/hooks/useAsync';
 import { useAuth } from '../../../store/hooks/useAuth';
 import {
-  EditedText, ParticipantTags, Tag, TranscribedAudio, TranscriptLinesWithTimes,
+  EditedText, ParticipantTags, Tag, TimelineTagRegion, TranscribedAudio, TranscriptLinesWithTimes,
 } from './types';
 import { AudioProvenanceVis } from '../../../components/audioAnalysis/AudioProvenanceVis';
 import { TranscriptSegmentsVis } from './TranscriptSegmentsVis';
@@ -35,9 +37,12 @@ import { useReplayContext } from '../../../store/hooks/useReplay';
 import {
   buildProvenanceLegendEntries,
 } from '../../../components/audioAnalysis/provenanceColors';
-import { revisitPageId, syncChannel } from '../../../utils/syncReplay';
+import { revisitPageId, syncChannel, syncEmitter } from '../../../utils/syncReplay';
 import { getLegacyStoredAnswerProvenance } from '../../../store/provenance';
 import { buildTaskNavigationTarget } from './taskNavigation';
+import { TimelineTagEditor } from './tags/TimelineTagEditor';
+import type { DraftRegion } from '../../../components/audioAnalysis/timelineTagging';
+import { laneCountFor } from '../../../components/audioAnalysis/timelineTagLayout';
 
 const margin = {
   left: 5, top: 0, right: 5, bottom: 0,
@@ -82,7 +87,7 @@ async function getParticipantTags(authEmail: string, trrackId: string | undefine
   return null;
 }
 
-async function getTags(storageEngine: StorageEngine | undefined, type: 'participant' | 'task' | 'text') {
+async function getTags(storageEngine: StorageEngine | undefined, type: 'participant' | 'task' | 'text' | 'timeline') {
   if (storageEngine) {
     const tags = await storageEngine.getTags(type);
     if (Array.isArray(tags)) {
@@ -103,9 +108,9 @@ function getBrowser(ua: string) {
 }
 
 export function ThinkAloudFooter({
-  visibleParticipants, rawTranscript, currentShownTranscription, width, onTimeUpdate, isReplay, editedTranscript, currentTrial, saveProvenance, jumpedToLine = 0, studyId, setHasAudio, storageEngine,
+  visibleParticipants, rawTranscript, currentShownTranscription, width, onTimeUpdate, isReplay, editedTranscript, currentTrial, saveProvenance, jumpedToLine = 0, studyId, setHasAudio, storageEngine, setTimelineLaneCount,
 }: {
-  visibleParticipants: string[], rawTranscript: TranscribedAudio | null, currentShownTranscription: number | null, width: number, onTimeUpdate: (n: number) => void, isReplay: boolean, editedTranscript?: EditedText[], currentTrial: string, saveProvenance: (prov: unknown) => void, jumpedToLine?: number, studyId: string, setHasAudio: (b: boolean) => void, storageEngine: StorageEngine | undefined,
+  visibleParticipants: string[], rawTranscript: TranscribedAudio | null, currentShownTranscription: number | null, width: number, onTimeUpdate: (n: number) => void, isReplay: boolean, editedTranscript?: EditedText[], currentTrial: string, saveProvenance: (prov: unknown) => void, jumpedToLine?: number, studyId: string, setHasAudio: (b: boolean) => void, storageEngine: StorageEngine | undefined, setTimelineLaneCount?: (n: number) => void,
 }) {
   const auth = useAuth();
 
@@ -122,8 +127,10 @@ export function ThinkAloudFooter({
 
   const { value: allParticipantTags, execute: pullAllParticipantTags } = useAsync(getTags, [storageEngine, 'participant']);
 
+  const { value: timelineTags, execute: pullTimelineTags } = useAsync(getTags, [storageEngine, 'timeline']);
+
   const {
-    isPlaying, setIsPlaying, speed, setSpeed, setSeekTime, hasEnded,
+    isPlaying, setIsPlaying, speed, setSpeed, setSeekTime, hasEnded, replayEvent,
   } = useReplayContext();
 
   const assetKey = `${participantId}\u0000${currentTrial}`;
@@ -355,7 +362,7 @@ export function ThinkAloudFooter({
     navigateToTask(orderedAnswers[nextIndex].identifier);
   }, [currentTrial, navigateToTask, orderedAnswers]);
 
-  const setTags = useCallback(async (_tags: Tag[], type: 'task' | 'participant') => {
+  const setTags = useCallback(async (_tags: Tag[], type: 'task' | 'participant' | 'timeline') => {
     if (!storageEngine) {
       return;
     }
@@ -363,10 +370,12 @@ export function ThinkAloudFooter({
     await storageEngine.saveTags(_tags, type);
     if (type === 'task') {
       await pullTags(storageEngine, type);
+    } else if (type === 'timeline') {
+      await pullTimelineTags(storageEngine, type);
     } else {
       await pullAllParticipantTags(storageEngine, type);
     }
-  }, [pullAllParticipantTags, pullTags, storageEngine]);
+  }, [pullAllParticipantTags, pullTags, pullTimelineTags, storageEngine]);
 
   const editTaskTagCallback = useCallback(async (oldTag: Tag, newTag: Tag) => {
     if (!taskTags) {
@@ -395,6 +404,162 @@ export function ThinkAloudFooter({
   const createTaskTagCallback = useCallback((t: Tag) => setTags([...(taskTags || []), t], 'task'), [setTags, taskTags]);
 
   const createParticipantTagCallback = useCallback((t: Tag) => setTags([...(allParticipantTags || []), t], 'participant'), [allParticipantTags, setTags]);
+
+  const createTimelineTagCallback = useCallback((t: Tag) => setTags([...(timelineTags || []), t], 'timeline'), [setTags, timelineTags]);
+
+  // ---- Timeline tag regions ----
+
+  const [isTagging, setIsTagging] = useState(false);
+  const [selectedRegionId, setSelectedRegionId] = useState<string | null>(null);
+  // A freshly dragged range, held here until it is given a tag. Dismissing discards it.
+  const [draftRegion, setDraftRegion] = useState<TimelineTagRegion | null>(null);
+
+  const savedRegions = useMemo(
+    () => localParticipantTags?.timelineTags?.[currentTrial] ?? [],
+    [localParticipantTags, currentTrial],
+  );
+
+  const timelineRegions = useMemo(
+    () => (draftRegion ? [...savedRegions, draftRegion] : savedRegions),
+    [savedRegions, draftRegion],
+  );
+
+  const selectedRegion = useMemo(
+    () => timelineRegions.find((r) => r.id === selectedRegionId) ?? null,
+    [timelineRegions, selectedRegionId],
+  );
+
+  useEffect(() => {
+    setTimelineLaneCount?.(laneCountFor(timelineRegions));
+  }, [timelineRegions, setTimelineLaneCount]);
+
+  // Reset the selection when the task changes so a stale region cannot keep looping.
+  useEffect(() => {
+    setSelectedRegionId(null);
+    setDraftRegion(null);
+    setIsTagging(false);
+  }, [currentTrial, participantId]);
+
+  const saveTimelineRegions = useCallback((regions: TimelineTagRegion[]) => {
+    if (!storageEngine || !participantId) {
+      return;
+    }
+
+    const base = localParticipantTags ?? participantTags ?? { participantTags: [], taskTags: {} };
+    const copy = structuredClone(base) as ParticipantTags;
+    copy.timelineTags = { ...(copy.timelineTags ?? {}), [currentTrial]: regions };
+
+    setLocalParticipantTags(copy);
+
+    const authEmail = auth.user.user?.email || 'temp';
+    storageEngine.saveAllParticipantAndTaskTags(authEmail, participantId, copy).then(() => {
+      pullParticipantTags(authEmail, participantId, studyId, storageEngine);
+      // Keep the replay window and the coding window in step.
+      syncChannel.postMessage({ key: 'timelineTagsUpdated', value: currentTrial });
+    });
+  }, [storageEngine, participantId, localParticipantTags, participantTags, currentTrial, auth.user.user?.email, pullParticipantTags, studyId]);
+
+  useEffect(() => {
+    const listener = () => {
+      if (storageEngine && participantId) {
+        pullParticipantTags(auth.user.user?.email || 'temp', participantId, studyId, storageEngine);
+      }
+    };
+
+    syncEmitter.on('timelineTagsUpdated', listener);
+
+    return () => {
+      syncEmitter.off('timelineTagsUpdated', listener);
+    };
+  }, [auth.user.user?.email, participantId, pullParticipantTags, storageEngine, studyId]);
+
+  const onRegionDrawn = useCallback((draft: DraftRegion) => {
+    const region: TimelineTagRegion = {
+      id: uuidv4(),
+      tagId: '',
+      start: draft.start,
+      end: draft.end,
+      duration: draft.duration,
+      comment: '',
+    };
+
+    setDraftRegion(region);
+    setSelectedRegionId(region.id);
+    setIsTagging(false);
+  }, []);
+
+  const updateSelectedRegion = useCallback((changes: Partial<TimelineTagRegion>) => {
+    if (!selectedRegion) {
+      return;
+    }
+
+    if (draftRegion && selectedRegion.id === draftRegion.id) {
+      const next = { ...draftRegion, ...changes };
+
+      // A draft is only written once it has been given a tag.
+      if (next.tagId) {
+        setDraftRegion(null);
+        saveTimelineRegions([...savedRegions, next]);
+      } else {
+        setDraftRegion(next);
+      }
+      return;
+    }
+
+    saveTimelineRegions(savedRegions.map((r) => (r.id === selectedRegion.id ? { ...r, ...changes } : r)));
+  }, [draftRegion, savedRegions, saveTimelineRegions, selectedRegion]);
+
+  const debouncedSaveComment = useMemo(
+    () => debounce((comment: string) => updateSelectedRegion({ comment }), 1000, { maxWait: 5000 }),
+    [updateSelectedRegion],
+  );
+
+  useEffect(() => () => debouncedSaveComment.cancel(), [debouncedSaveComment]);
+
+  const deleteSelectedRegion = useCallback(() => {
+    if (!selectedRegion) {
+      return;
+    }
+
+    debouncedSaveComment.cancel();
+
+    if (draftRegion && selectedRegion.id === draftRegion.id) {
+      setDraftRegion(null);
+    } else {
+      saveTimelineRegions(savedRegions.filter((r) => r.id !== selectedRegion.id));
+    }
+
+    setSelectedRegionId(null);
+  }, [debouncedSaveComment, draftRegion, savedRegions, saveTimelineRegions, selectedRegion]);
+
+  // Cycle playback within the selected region for as long as it stays selected.
+  const loopRangeRef = useRef<{ start: number; end: number } | null>(null);
+  loopRangeRef.current = selectedRegion ? { start: selectedRegion.start, end: selectedRegion.end } : null;
+
+  useEffect(() => {
+    if (!selectedRegionId) {
+      return undefined;
+    }
+
+    const onTime = (t: number) => {
+      const range = loopRangeRef.current;
+      // setSeekTime re-emits timeupdate, but it lands below `end`, so this settles immediately.
+      if (range && (t >= range.end || t < range.start)) {
+        setSeekTime(range.start);
+      }
+    };
+
+    const range = loopRangeRef.current;
+    if (range) {
+      setSeekTime(range.start);
+    }
+
+    replayEvent.on('timeupdate', onTime);
+
+    return () => {
+      replayEvent.off('timeupdate', onTime);
+    };
+  }, [selectedRegionId, replayEvent, setSeekTime]);
 
   useEffect(() => {
     const t = transcriptLines ? transcriptLines[jumpedToLine]?.start || 0 : 0;
@@ -457,7 +622,24 @@ export function ThinkAloudFooter({
       <Stack style={{ backgroundColor: 'var(--mantine-color-blue-1)', height: '100%' }} gap={5} justify="flex-start">
 
         {participant && currentTrial && (!participant.answers[currentTrial] || participant.answers[currentTrial].endTime === -1) ? <Center><Text c="dimmed">{`Participant ${participant.participantId} has not completed this task`}</Text></Center> : null}
-        <AudioProvenanceVis setHasAudio={setHasAudio} saveProvenance={saveProvenance} setTime={onTimeUpdate} setTimeString={(_t) => setTimeString(_t)} answers={participant ? participant.answers : {}} taskName={currentTrial} context={isReplay ? 'provenanceVis' : 'audioAnalysis'} />
+        <AudioProvenanceVis
+          setHasAudio={setHasAudio}
+          saveProvenance={saveProvenance}
+          setTime={onTimeUpdate}
+          setTimeString={(_t) => setTimeString(_t)}
+          answers={participant ? participant.answers : {}}
+          taskName={currentTrial}
+          context={isReplay ? 'provenanceVis' : 'audioAnalysis'}
+          isTagging={isTagging}
+          timelineRegions={timelineRegions}
+          timelineTags={timelineTags || []}
+          selectedRegionId={selectedRegionId}
+          onRegionDrawn={onRegionDrawn}
+          onSelectRegion={(region) => {
+            setIsTagging(false);
+            setSelectedRegionId((current) => (current === region.id ? null : region.id));
+          }}
+        />
         {xScale && transcriptLines ? <TranscriptSegmentsVis startTime={xScale.domain()[0]} xScale={xScale} transcriptLines={transcriptLines} currentShownTranscription={currentShownTranscription || 0} /> : null}
 
         <Group gap="xs" style={{ width: '100%' }} justify="center" wrap="nowrap" mb={isReplay ? 0 : 'md'}>
@@ -628,6 +810,67 @@ export function ThinkAloudFooter({
                 }}
                 selectedTags={localParticipantTags ? localParticipantTags.taskTags[currentTrial] || [] : []}
               />
+            </Stack>
+
+            <Stack gap="4">
+              <Group gap="xs" align="center">
+                <Text size="sm" fw={500}>Timeline Tags</Text>
+                <Tooltip w={300} multiline label="Timeline tags label a time range of the recording. Turn on tagging, then drag across the timeline to mark a range. Click a marked range to tag it, add a note, or delete it.">
+                  <IconInfoCircle size={16} />
+                </Tooltip>
+              </Group>
+              <Group gap="xs" wrap="nowrap">
+                <Tooltip label={isTagging ? 'Cancel timeline tagging' : 'Drag on the timeline to tag a range'}>
+                  <Button
+                    size="compact-sm"
+                    variant={isTagging ? 'filled' : 'light'}
+                    leftSection={<IconTimelineEvent size={16} />}
+                    onClick={() => {
+                      setSelectedRegionId(null);
+                      setIsTagging((tagging) => !tagging);
+                    }}
+                  >
+                    {isTagging ? 'Drag a range' : 'Tag timeline'}
+                  </Button>
+                </Tooltip>
+
+                <Popover
+                  opened={!!selectedRegion}
+                  onChange={(opened) => {
+                    if (!opened) {
+                      debouncedSaveComment.flush();
+                      setDraftRegion(null);
+                      setSelectedRegionId(null);
+                    }
+                  }}
+                  position="top"
+                  withArrow
+                  shadow="md"
+                  trapFocus
+                  withinPortal
+                >
+                  <Popover.Target>
+                    <Text size="xs" c="dimmed">
+                      {timelineRegions.length > 0 ? `${timelineRegions.length} tagged` : 'None yet'}
+                    </Text>
+                  </Popover.Target>
+                  {selectedRegion && (
+                    <Popover.Dropdown>
+                      <TimelineTagEditor
+                        tags={timelineTags || []}
+                        region={selectedRegion}
+                        createTagCallback={async (t: Tag) => {
+                          await createTimelineTagCallback(t);
+                          updateSelectedRegion({ tagId: t.id });
+                        }}
+                        onSelectTag={(tagId) => updateSelectedRegion({ tagId })}
+                        onCommentChange={(comment) => debouncedSaveComment(comment)}
+                        onDelete={deleteSelectedRegion}
+                      />
+                    </Popover.Dropdown>
+                  )}
+                </Popover>
+              </Group>
             </Stack>
           </Group>
           <Button

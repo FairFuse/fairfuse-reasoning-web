@@ -29,6 +29,10 @@ import { syncChannel, syncEmitter } from '../../utils/syncReplay';
 import type { StoredProvenance } from '../../store/types';
 import { getLegacyStoredAnswerProvenance } from '../../store/provenance';
 import { getReplaySelection } from './provenanceReplay';
+import { TimelineTagRegions } from './TimelineTagRegions';
+import { LANE_HEIGHT, laneCountFor } from './timelineTagLayout';
+import { DraftRegion } from './timelineTagging';
+import type { Tag, TimelineTagRegion } from '../../analysis/individualStudy/thinkAloud/types';
 
 const margin = {
   left: 16, top: 0, right: 16, bottom: 0,
@@ -46,6 +50,12 @@ export function AudioProvenanceVis({
   context,
   saveProvenance,
   setHasAudio,
+  isTagging = false,
+  timelineRegions = [],
+  timelineTags = [],
+  selectedRegionId = null,
+  onRegionDrawn,
+  onSelectRegion,
 }: {
   setTimeString: (time: string) => void;
   answers: Record<string, StoredAnswer>;
@@ -54,6 +64,12 @@ export function AudioProvenanceVis({
   context: 'audioAnalysis' | 'provenanceVis';
   saveProvenance: ((state: unknown) => void);
   setHasAudio: (b: boolean) => void;
+  isTagging?: boolean;
+  timelineRegions?: TimelineTagRegion[];
+  timelineTags?: Tag[];
+  selectedRegionId?: string | null;
+  onRegionDrawn?: (region: DraftRegion) => void;
+  onSelectRegion?: (region: TimelineTagRegion) => void;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const routerLocation = useLocation();
@@ -358,12 +374,15 @@ export function AudioProvenanceVis({
     return scale;
   }, [answers, taskName, duration, width]);
 
+  const laneCount = useMemo(() => laneCountFor(timelineRegions), [timelineRegions]);
+  const laneBandHeight = laneCount * LANE_HEIGHT;
+
   return (
     <Group wrap="nowrap" gap={0} mx={0} bg="blue.0" style={{ borderBottom: '1px solid var(--app-shell-border-color)' }}>
       <Stack ref={ref} style={{ width: '100%' }} gap={0}>
         <LoadingOverlay visible={waveSurferLoading && hasLoadableTask} overlayProps={{ blur: 5, backgroundOpacity: 0.35 }} />
 
-        <Box style={{ position: 'relative', height: 80 }}>
+        <Box style={{ position: 'relative', height: 80 + laneBandHeight }}>
           {hasLoadableTask
             ? (
               <Box pos="relative" ml={margin.left} mr={margin.right} style={{ zIndex: 1 }}>
@@ -385,7 +404,7 @@ export function AudioProvenanceVis({
             ) : null}
           {xScale ? (
             <Box pos="absolute" top={0} style={{ zIndex: 1 }}>
-              <Timer height={80} width={width} xScale={xScale} debounceUpdateTimer={_setPlayTime} margin={margin} />
+              <Timer height={80} width={width} xScale={xScale} debounceUpdateTimer={_setPlayTime} margin={margin} isTagging={isTagging} onRegionDrawn={onRegionDrawn} />
             </Box>
           ) : null}
 
@@ -411,6 +430,18 @@ export function AudioProvenanceVis({
                 />
               ) : null}
           </Box>
+
+          {xScale ? (
+            <TimelineTagRegions
+              regions={timelineRegions}
+              tags={timelineTags}
+              xScale={xScale}
+              width={width}
+              bandTop={80}
+              selectedRegionId={selectedRegionId}
+              onSelectRegion={onSelectRegion ?? (() => {})}
+            />
+          ) : null}
         </Box>
       </Stack>
     </Group>
