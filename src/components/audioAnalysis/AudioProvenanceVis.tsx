@@ -57,6 +57,7 @@ export function AudioProvenanceVis({
   onRegionDrawn,
   onSelectRegion,
   onDragStart,
+  onRegionChange,
 }: {
   setTimeString: (time: string) => void;
   answers: Record<string, StoredAnswer>;
@@ -72,6 +73,7 @@ export function AudioProvenanceVis({
   onRegionDrawn?: (region: DraftRegion) => void;
   onSelectRegion?: (region: TimelineTagRegion) => void;
   onDragStart?: (time: number) => void;
+  onRegionChange?: (region: TimelineTagRegion) => void;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const routerLocation = useLocation();
@@ -442,6 +444,8 @@ export function AudioProvenanceVis({
               bandTop={80}
               selectedRegionId={selectedRegionId}
               onSelectRegion={onSelectRegion ?? (() => {})}
+              onRegionChange={onRegionChange}
+              interactive={!isTagging}
             />
           ) : null}
         </Box>

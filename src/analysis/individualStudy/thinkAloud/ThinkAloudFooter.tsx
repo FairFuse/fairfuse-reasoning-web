@@ -497,6 +497,17 @@ export function ThinkAloudFooter({
     startPlaybackAt(region.start);
   }, [startPlaybackAt]);
 
+  // Committed at the end of a move or resize on the timeline.
+  const onRegionChange = useCallback((region: TimelineTagRegion) => {
+    if (draftRegion && region.id === draftRegion.id) {
+      // Still untagged, so it stays provisional rather than being written.
+      setDraftRegion(region);
+      return;
+    }
+
+    saveTimelineRegions(savedRegions.map((r) => (r.id === region.id ? region : r)));
+  }, [draftRegion, savedRegions, saveTimelineRegions]);
+
   const updateSelectedRegion = useCallback((changes: Partial<TimelineTagRegion>) => {
     if (!selectedRegion) {
       return;
@@ -672,6 +683,7 @@ export function ThinkAloudFooter({
           selectedRegionId={selectedRegionId}
           onRegionDrawn={onRegionDrawn}
           onDragStart={startPlaybackAt}
+          onRegionChange={onRegionChange}
           onSelectRegion={(region) => {
             setIsTagging(false);
             if (selectedRegionId === region.id) {
