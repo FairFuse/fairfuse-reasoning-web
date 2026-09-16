@@ -16,7 +16,7 @@ async function getAllParticipantsNames(storageEngine: StorageEngine | undefined)
   return null;
 }
 
-export function AnalysisFooter({ setHasAudio }: {setHasAudio: (b: boolean) => void}) {
+export function AnalysisFooter({ setHasAudio, setTimelineLaneCount }: {setHasAudio: (b: boolean) => void, setTimelineLaneCount?: (n: number) => void}) {
   const { storageEngine } = useStorageEngine();
 
   const { value: allParticipants } = useAsync(getAllParticipantsNames, [storageEngine]);
@@ -35,6 +35,6 @@ export function AnalysisFooter({ setHasAudio }: {setHasAudio: (b: boolean) => vo
   const saveProvenance = useCallback((prov: any) => storeDispatch(saveAnalysisState(prov)), [storeDispatch, saveAnalysisState]);
 
   return (
-    <ThinkAloudFooter storageEngine={storageEngine} setHasAudio={setHasAudio} studyId={studyId || ''} currentTrial={identifier} isReplay visibleParticipants={allParticipants || []} rawTranscript={null} currentShownTranscription={null} width={3000} onTimeUpdate={() => {}} saveProvenance={saveProvenance} />
+    <ThinkAloudFooter storageEngine={storageEngine} setHasAudio={setHasAudio} setTimelineLaneCount={setTimelineLaneCount} studyId={studyId || ''} currentTrial={identifier} isReplay visibleParticipants={allParticipants || []} rawTranscript={null} currentShownTranscription={null} width={3000} onTimeUpdate={() => {}} saveProvenance={saveProvenance} />
   );
 }

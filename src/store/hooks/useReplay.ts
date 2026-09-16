@@ -6,6 +6,9 @@ import { syncChannel, syncEmitter } from '../../utils/syncReplay';
 import EventEmitter from '../../utils/EventEmitter';
 import { getNextSyntheticReplayTime } from './replayTimer';
 
+/** How close the media's currentTime must be to a requested seek to count as landed. */
+const SEEK_SETTLED_TOLERANCE = 0.35;
+
 function seekMedia(media: HTMLMediaElement, time: number) {
   const mediaTime = Number.isFinite(media.duration) && media.duration > 0
     ? Math.min(time, media.duration)
@@ -66,6 +69,11 @@ export function useReplay() {
   }, [updateIsPlaying]);
 
   const [hasEnded, setHasEnded] = useState(false);
+
+  // Time requested by the most recent seek, until the media element reports that it
+  // landed. While a seek is in flight the element still reports its old currentTime,
+  // which must not be allowed to drag the clock back to where playback used to be.
+  const pendingSeekRef = useRef<number | null>(null);
 
   const setDuration = useCallback((d: number) => {
     _setDuration(d);
@@ -151,6 +159,7 @@ export function useReplay() {
   }, [updateIsPlaying]);
 
   const handleSeeked = useCallback(() => {
+    pendingSeekRef.current = null;
     // Media may clamp a task-level seek to its shorter duration. Keep the task
     // clock authoritative instead of allowing that seeked event to move it.
     emitterRef.current.emit('timeupdate', timerValue.current);
@@ -160,6 +169,7 @@ export function useReplay() {
     setIsMasterPlayer(!isRemoteTriggered);
     _setSeekTime(time);
     timerValue.current = time;
+    pendingSeekRef.current = time;
     if (videoRef.current) {
       seekMedia(videoRef.current, time);
     }
@@ -321,9 +331,21 @@ export function useReplay() {
 
         const now = Date.now();
         const media = replayRef.current;
+
+        // A seek that lands without firing `seeked` (for example when the element is
+        // already at that time) would otherwise leave the clock synthetic forever.
+        if (
+          pendingSeekRef.current !== null
+          && media
+          && Math.abs(media.currentTime - pendingSeekRef.current) < SEEK_SETTLED_TOLERANCE
+        ) {
+          pendingSeekRef.current = null;
+        }
+
         const mediaIsAvailable = media
           && !media.ended
-          && mediaIncludesTime(media, timerValue.current);
+          && mediaIncludesTime(media, timerValue.current)
+          && pendingSeekRef.current === null;
         const nextTime = mediaIsAvailable
           ? Math.max(timerValue.current, media.currentTime)
           : getNextSyntheticReplayTime(

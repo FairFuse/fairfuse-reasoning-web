@@ -133,6 +133,8 @@ vi.mock('@mantine/core', () => ({
   ),
   Input: { Placeholder: ({ children }: { children: ReactNode }) => <span>{children}</span> },
   Loader: () => <span>loading</span>,
+  Paper: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  CloseButton: ({ onClick, 'aria-label': ariaLabel }: { onClick?: () => void; 'aria-label'?: string }) => <button type="button" aria-label={ariaLabel} onClick={onClick}>close</button>,
   Pill: Object.assign(
     ({ children }: { children: ReactNode }) => <span>{children}</span>,
     { Group: ({ children }: { children: ReactNode }) => <div>{children}</div> },
@@ -147,6 +149,10 @@ vi.mock('@mantine/core', () => ({
       Target: ({ children }: { children: ReactNode }) => <div>{children}</div>,
       Dropdown: ({ children }: { children: ReactNode }) => <div>{children}</div>,
     },
+  ),
+  ScrollArea: Object.assign(
+    ({ children }: { children: ReactNode }) => <div>{children}</div>,
+    { Autosize: ({ children }: { children: ReactNode }) => <div>{children}</div> },
   ),
   SegmentedControl: ({ data, onChange }: { data?: { label: string; value: string }[]; onChange?: (v: string) => void }) => (
     <div>{data?.map((item) => <button key={item.value} type="button" onClick={() => onChange?.(item.value)}>{item.label}</button>)}</div>
@@ -195,6 +201,8 @@ vi.mock('@tabler/icons-react', () => ({
   IconPlayerPauseFilled: () => null,
   IconPlayerPlayFilled: () => null,
   IconRestore: () => null,
+  IconTimelineEvent: () => null,
+  IconTrash: () => null,
 }));
 
 vi.mock('uuid', () => ({ v4: () => 'mock-uuid' }));
@@ -220,7 +228,7 @@ vi.mock('../../../../store/hooks/useReplay', () => ({
   useReplay: vi.fn(() => ({})),
   ReplayContext: { Provider: ({ children }: { children: ReactNode }) => <div>{children}</div> },
   useReplayContext: vi.fn(() => ({
-    isPlaying: false, setIsPlaying: vi.fn(), speed: 1, setSpeed: vi.fn(), setSeekTime: vi.fn(), hasEnded: false,
+    isPlaying: false, setIsPlaying: vi.fn(), speed: 1, setSpeed: vi.fn(), setSeekTime: vi.fn(), hasEnded: false, replayEvent: { on: vi.fn(), off: vi.fn() },
   })),
 }));
 
@@ -228,14 +236,14 @@ vi.mock('../../../../store/hooks/useEvent', () => ({ useEvent: (fn: (...args: ne
 vi.mock('../../../../storage/storageEngineHooks', () => ({ useStorageEngine: vi.fn(() => ({ storageEngine: undefined })) }));
 vi.mock('../../../../storage/engines/FirebaseStorageEngine', () => ({ FirebaseStorageEngine: class { } }));
 vi.mock('../../../../utils/parseTrialOrder', () => ({ parseTrialOrder: vi.fn(() => ({ step: 0, funcIndex: null })) }));
-vi.mock('lodash.debounce', () => ({ default: (fn: (...args: never[]) => void) => fn }));
+vi.mock('lodash.debounce', () => ({ default: (fn: (...args: never[]) => void) => Object.assign((...args: never[]) => fn(...args), { cancel: vi.fn(), flush: vi.fn() }) }));
 vi.mock('../../../../components/audioAnalysis/AudioProvenanceVis', () => ({ AudioProvenanceVis: () => <div data-testid="audio-provenance-vis" /> }));
 vi.mock('../../../../utils/encryptDecryptIndex', () => ({ encryptIndex: (i: number) => String(i) }));
 vi.mock('../../../../utils/Prefix', () => ({ PREFIX: '/' }));
 vi.mock('../../../../utils/handleDownloadFiles', () => ({ handleTaskAudio: vi.fn(), handleTaskScreenRecording: vi.fn() }));
 vi.mock('../../ParticipantRejectModal', () => ({ ParticipantRejectModal: () => null }));
 vi.mock('../../../../components/audioAnalysis/provenanceColors', () => ({ buildProvenanceLegendEntries: vi.fn(() => []) }));
-vi.mock('../../../../utils/syncReplay', () => ({ revisitPageId: 'test-page-id', syncChannel: { postMessage: vi.fn() } }));
+vi.mock('../../../../utils/syncReplay', () => ({ revisitPageId: 'test-page-id', syncChannel: { postMessage: vi.fn() }, syncEmitter: { on: vi.fn(), off: vi.fn(), emit: vi.fn() } }));
 
 vi.mock('../ThinkAloudFooter', () => ({ ThinkAloudFooter: (props: Parameters<typeof mockThinkAloudFooter>[0]) => mockThinkAloudFooter(props) }));
 vi.mock('../TextEditor', () => ({ TextEditor: (props: Parameters<typeof mockTextEditor>[0]) => mockTextEditor(props) }));
@@ -926,7 +934,7 @@ describe('ThinkAloudFooter', () => {
   test('play/pause toggle calls setIsPlaying', async () => {
     const mockSetIsPlaying = vi.fn();
     vi.mocked(useReplayContext).mockReturnValue({
-      isPlaying: false, setIsPlaying: mockSetIsPlaying, speed: 1, setSpeed: vi.fn(), setSeekTime: vi.fn(), hasEnded: false,
+      isPlaying: false, setIsPlaying: mockSetIsPlaying, speed: 1, setSpeed: vi.fn(), setSeekTime: vi.fn(), hasEnded: false, replayEvent: { on: vi.fn(), off: vi.fn() },
     } as unknown as ReturnType<typeof useReplayContext>);
     const { getAllByRole } = await act(async () => render(
       <RealThinkAloudFooter {...footerDefaultProps} />,

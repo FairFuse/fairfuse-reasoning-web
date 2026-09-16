@@ -489,3 +489,113 @@ describe('useReplay — cleanup', () => {
     consoleSpy.mockRestore();
   });
 });
+
+// ── backward seeks while playing ───────────────────────────────────────────────
+
+/**
+ * A media element whose currentTime only changes when the test says so, the way a real
+ * element reports its old position until an async seek actually lands.
+ */
+function makeSeekingVideo(initialTime: number) {
+  const video = makeVideoWithSrc();
+  Object.defineProperty(video, 'duration', { value: 100, writable: true, configurable: true });
+  let reported = initialTime;
+  Object.defineProperty(video, 'currentTime', {
+    get: () => reported,
+    set: () => { /* a seek was requested; it has not landed yet */ },
+    configurable: true,
+  });
+  video.play = vi.fn().mockResolvedValue(undefined);
+  video.pause = vi.fn();
+
+  return { video, landSeekAt: (t: number) => { reported = t; } };
+}
+
+function playingReplayWithVideo(initialTime: number) {
+  const { result } = renderHook(() => useReplay());
+  const { video, landSeekAt } = makeSeekingVideo(initialTime);
+
+  act(() => {
+    result.current.videoRef.current = video;
+    result.current.updateReplayRef();
+    result.current.setDuration(100);
+  });
+
+  const seen: number[] = [];
+  act(() => { result.current.replayEvent.on('timeupdate', (t: number) => seen.push(t)); });
+  act(() => { result.current.setIsPlaying(true); });
+
+  return {
+    result, video, landSeekAt, seen,
+  };
+}
+
+describe('useReplay — seeking backwards while playing', () => {
+  test('a pending seek is not undone by the stale media currentTime', () => {
+    vi.useFakeTimers();
+    const { result, seen } = playingReplayWithVideo(40);
+
+    act(() => { result.current.setSeekTime(10); });
+    expect(seen.at(-1)).toBe(10);
+
+    // The element still reports 40, but the clock must stay where we seeked to.
+    act(() => { vi.advanceTimersByTime(30); });
+
+    expect(seen.at(-1)).toBeGreaterThanOrEqual(10);
+    expect(seen.at(-1)).toBeLessThan(11);
+  });
+
+  test('the clock keeps advancing from the seek target while the seek is in flight', () => {
+    vi.useFakeTimers();
+    const { result, seen } = playingReplayWithVideo(40);
+
+    act(() => { result.current.setSeekTime(10); });
+    act(() => { vi.advanceTimersByTime(300); });
+
+    // Roughly 0.3s of playback past the seek target, nowhere near the old position.
+    expect(seen.at(-1)).toBeGreaterThan(10);
+    expect(seen.at(-1)).toBeLessThan(11);
+  });
+
+  test('media becomes authoritative again once the seek lands', () => {
+    vi.useFakeTimers();
+    const {
+      result, video, landSeekAt, seen,
+    } = playingReplayWithVideo(40);
+
+    act(() => { result.current.setSeekTime(10); });
+    act(() => {
+      landSeekAt(10);
+      video.dispatchEvent(new Event('seeked'));
+    });
+    act(() => { landSeekAt(20); });
+    act(() => { vi.advanceTimersByTime(30); });
+
+    expect(seen.at(-1)).toBe(20);
+  });
+
+  test('a seek that lands without a seeked event still hands authority back', () => {
+    vi.useFakeTimers();
+    const { result, landSeekAt, seen } = playingReplayWithVideo(40);
+
+    act(() => { result.current.setSeekTime(10); });
+    // No seeked event, but the element has converged on the requested time.
+    act(() => { landSeekAt(10); });
+    act(() => { vi.advanceTimersByTime(30); });
+    act(() => { landSeekAt(25); });
+    act(() => { vi.advanceTimersByTime(30); });
+
+    expect(seen.at(-1)).toBe(25);
+  });
+
+  test('forward seeks still work', () => {
+    vi.useFakeTimers();
+    const { result, seen } = playingReplayWithVideo(10);
+
+    act(() => { result.current.setSeekTime(50); });
+    act(() => { vi.advanceTimersByTime(30); });
+
+    expect(seen.at(-1)).toBeGreaterThanOrEqual(50);
+    expect(seen.at(-1)).toBeLessThan(51);
+  });
+});

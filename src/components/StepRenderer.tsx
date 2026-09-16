@@ -20,6 +20,7 @@ import { useStudyConfig } from '../store/hooks/useStudyConfig';
 import { WindowEventsContext } from '../store/hooks/useWindowEvents';
 import { useStoreSelector, useStoreDispatch, useStoreActions } from '../store/store';
 import { AnalysisFooter } from './interface/AnalysisFooter';
+import { LANE_HEIGHT } from './audioAnalysis/timelineTagLayout';
 import { useIsAnalysis } from '../store/hooks/useIsAnalysis';
 import { studyComponentToIndividualComponent } from '../utils/handleComponentInheritance';
 import { useCurrentComponent } from '../routes/utils';
@@ -180,6 +181,7 @@ export function StepRenderer() {
   );
 
   const [hasAudio, setHasAudio] = useState<boolean>();
+  const [timelineLaneCount, setTimelineLaneCount] = useState<number>(0);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const exportInProgressRef = useRef(false);
   const pdfExportRootRef = useRef<HTMLDivElement>(null);
@@ -274,7 +276,7 @@ export function StepRenderer() {
             padding="md"
             header={{ height: showTitleBar ? 70 : 0 }}
             aside={{ width: STUDY_BROWSER_WIDTH, breakpoint: 'xs', collapsed: { desktop: !asideOpen, mobile: !asideOpen } }}
-            footer={{ height: isAnalysis ? 95 + (hasAudio ? 55 : 0) : 0 }}
+            footer={{ height: isAnalysis ? 95 + (hasAudio ? 55 : 0) + timelineLaneCount * LANE_HEIGHT : 0 }}
             style={{ '--app-shell-aside-offset': '0rem' } as CSSProperties}
           >
             {asideOpen && <AppAside />}
@@ -383,7 +385,7 @@ export function StepRenderer() {
               </AppShell.Main>
             </Flex>
             {isAnalysis && (
-            <AnalysisFooter setHasAudio={setHasAudio} key={currentComponent} />
+            <AnalysisFooter setHasAudio={setHasAudio} setTimelineLaneCount={setTimelineLaneCount} key={currentComponent} />
             )}
           </AppShell>
         </ReplayContext.Provider>
