@@ -60,11 +60,12 @@ function renderEditor(overrides: Partial<Parameters<typeof TimelineTagEditor>[0]
     onCommentChange: vi.fn(),
     onDelete: vi.fn(),
     createTagCallback: vi.fn(),
+    editTagCallback: vi.fn(),
     ...overrides,
   };
 
   render(
-    <MantineProvider>
+    <MantineProvider env="test">
       <TimelineTagEditor {...props} />
     </MantineProvider>,
   );
@@ -113,6 +114,43 @@ describe('TimelineTagEditor', () => {
     fireEvent.click(screen.getByText('Delete'));
 
     expect(onDelete).toHaveBeenCalled();
+  });
+
+  test('offers an edit button for each tag', () => {
+    renderEditor();
+
+    expect(screen.getByLabelText('Edit Confusion')).toBeDefined();
+    expect(screen.getByLabelText('Edit Insight')).toBeDefined();
+  });
+
+  test('editing a tag does not also select it', () => {
+    const { onSelectTag } = renderEditor();
+
+    fireEvent.click(screen.getByLabelText('Edit Insight'));
+
+    expect(onSelectTag).not.toHaveBeenCalled();
+  });
+
+  test('opening the edit popover shows the tag ready to rename', async () => {
+    renderEditor();
+
+    fireEvent.click(screen.getByLabelText('Edit Insight'));
+
+    const nameInput = await screen.findByPlaceholderText('Enter tag name');
+    expect((nameInput as HTMLInputElement).defaultValue).toBe('Insight');
+  });
+
+  test('renaming a tag reports the old and new tag', async () => {
+    const { editTagCallback } = renderEditor();
+
+    fireEvent.click(screen.getByLabelText('Edit Insight'));
+    fireEvent.change(await screen.findByPlaceholderText('Enter tag name'), { target: { value: 'Realisation' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Edit Tag' }));
+
+    expect(editTagCallback).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'tl-2', name: 'Insight' }),
+      expect.objectContaining({ id: 'tl-2', name: 'Realisation' }),
+    );
   });
 
   test('reports a close', () => {

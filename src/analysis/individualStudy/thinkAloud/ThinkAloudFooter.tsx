@@ -407,6 +407,18 @@ export function ThinkAloudFooter({
 
   const createTimelineTagCallback = useCallback((t: Tag) => setTags([...(timelineTags || []), t], 'timeline'), [setTags, timelineTags]);
 
+  const editTimelineTagCallback = useCallback(async (oldTag: Tag, newTag: Tag) => {
+    if (!timelineTags) {
+      return;
+    }
+
+    const tagIndex = timelineTags.findIndex((t) => t.id === oldTag.id);
+    const tagsCopy = Array.from(timelineTags);
+    tagsCopy[tagIndex] = newTag;
+
+    await setTags(tagsCopy, 'timeline');
+  }, [setTags, timelineTags]);
+
   // ---- Timeline tag regions ----
 
   const [isTagging, setIsTagging] = useState(false);
@@ -659,6 +671,7 @@ export function ThinkAloudFooter({
               await createTimelineTagCallback(t);
               updateSelectedRegion({ tagId: t.id });
             }}
+            editTagCallback={editTimelineTagCallback}
             onSelectTag={(tagId) => updateSelectedRegion({ tagId })}
             onCommentChange={(comment) => debouncedSaveComment(comment)}
             onDelete={deleteSelectedRegion}

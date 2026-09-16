@@ -5,6 +5,7 @@ import { IconTrash } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import { Tag, TimelineTagRegion } from '../types';
 import { TagEditor } from './TagEditor';
+import { EditTagPopover } from './EditTagPopover';
 import { youtubeReadableDuration } from '../../../../utils/humanReadableDuration';
 
 /**
@@ -19,6 +20,7 @@ export function TimelineTagEditor({
   onCommentChange,
   onDelete,
   createTagCallback,
+  editTagCallback,
   onClose,
 }: {
   tags: Tag[];
@@ -27,6 +29,7 @@ export function TimelineTagEditor({
   onCommentChange: (comment: string) => void;
   onDelete: () => void;
   createTagCallback: (tag: Tag) => void | Promise<void>;
+  editTagCallback: (oldTag: Tag, newTag: Tag) => void | Promise<void>;
   onClose?: () => void;
 }) {
   const [comment, setComment] = useState(region.comment);
@@ -49,17 +52,24 @@ export function TimelineTagEditor({
         {tags.length === 0
           ? <Text size="sm" c="dimmed">No timeline tags yet</Text>
           : tags.filter((tag) => tag !== undefined).map((tag) => (
-            <Button
-              key={tag.id}
-              size="compact-sm"
-              justify="flex-start"
-              variant={tag.id === region.tagId ? 'filled' : 'subtle'}
-              color={tag.id === region.tagId ? undefined : 'gray'}
-              onClick={() => onSelectTag(tag.id)}
-              leftSection={<ColorSwatch size={10} color={tag.color} />}
-            >
-              <Text size="sm" truncate="end">{tag.name}</Text>
-            </Button>
+            <Group key={tag.id} gap="xs" wrap="nowrap" justify="space-between">
+              <Button
+                size="compact-sm"
+                justify="flex-start"
+                style={{ flex: 1, minWidth: 0 }}
+                variant={tag.id === region.tagId ? 'filled' : 'subtle'}
+                color={tag.id === region.tagId ? undefined : 'gray'}
+                onClick={() => onSelectTag(tag.id)}
+                leftSection={<ColorSwatch size={10} color={tag.color} />}
+              >
+                <Text size="sm" truncate="end">{tag.name}</Text>
+              </Button>
+              <EditTagPopover
+                tag={tag}
+                currentNames={tags.map((t) => t.name)}
+                editTagCallback={editTagCallback}
+              />
+            </Group>
           ))}
       </Stack>
 
