@@ -133,6 +133,8 @@ vi.mock('@mantine/core', () => ({
   ),
   Input: { Placeholder: ({ children }: { children: ReactNode }) => <span>{children}</span> },
   Loader: () => <span>loading</span>,
+  Paper: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  CloseButton: ({ onClick, 'aria-label': ariaLabel }: { onClick?: () => void; 'aria-label'?: string }) => <button type="button" aria-label={ariaLabel} onClick={onClick}>close</button>,
   Pill: Object.assign(
     ({ children }: { children: ReactNode }) => <span>{children}</span>,
     { Group: ({ children }: { children: ReactNode }) => <div>{children}</div> },

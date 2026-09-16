@@ -5,7 +5,7 @@ import {
   Button,
   Center,
   ColorSwatch,
-  Group, HoverCard, Popover, SegmentedControl, Select, Stack, Text,
+  Group, HoverCard, Paper, Popover, SegmentedControl, Select, Stack, Text,
   Tooltip,
 } from '@mantine/core';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
@@ -532,6 +532,12 @@ export function ThinkAloudFooter({
     setSelectedRegionId(null);
   }, [debouncedSaveComment, draftRegion, savedRegions, saveTimelineRegions, selectedRegion]);
 
+  const closeRegionEditor = useCallback(() => {
+    debouncedSaveComment.flush();
+    setDraftRegion(null);
+    setSelectedRegionId(null);
+  }, [debouncedSaveComment]);
+
   // Cycle playback within the selected region for as long as it stays selected.
   const loopRangeRef = useRef<{ start: number; end: number } | null>(null);
   loopRangeRef.current = selectedRegion ? { start: selectedRegion.start, end: selectedRegion.end } : null;
@@ -552,6 +558,8 @@ export function ThinkAloudFooter({
     const range = loopRangeRef.current;
     if (range) {
       setSeekTime(range.start);
+      // Selecting a region plays it back straight away rather than waiting on the user.
+      setIsPlaying(true);
     }
 
     replayEvent.on('timeupdate', onTime);
@@ -559,7 +567,7 @@ export function ThinkAloudFooter({
     return () => {
       replayEvent.off('timeupdate', onTime);
     };
-  }, [selectedRegionId, replayEvent, setSeekTime]);
+  }, [selectedRegionId, replayEvent, setSeekTime, setIsPlaying]);
 
   useEffect(() => {
     const t = transcriptLines ? transcriptLines[jumpedToLine]?.start || 0 : 0;
@@ -618,6 +626,32 @@ export function ThinkAloudFooter({
         >
           <Alert withCloseButton onClose={() => setBrowserWarningDismissed(true)} variant="filled" color="red" title={`Participant used ${getBrowser(participant.metadata?.userAgent ?? '')} — you are using ${getBrowser(navigator.userAgent)}. Video playback may not work properly.`} icon={<IconInfoCircle />} />
         </div>
+      )}
+      {selectedRegion && (
+        // Sits directly above the footer, clear of the timeline and the video. The footer
+        // is itself fixed, so this tracks the viewport whatever the footer's height is.
+        <Paper
+          data-testid="timeline-tag-editor-panel"
+          shadow="md"
+          withBorder
+          p="sm"
+          style={{
+            position: 'absolute', bottom: '100%', right: 8, marginBottom: 8, zIndex: 300,
+          }}
+        >
+          <TimelineTagEditor
+            tags={timelineTags || []}
+            region={selectedRegion}
+            createTagCallback={async (t: Tag) => {
+              await createTimelineTagCallback(t);
+              updateSelectedRegion({ tagId: t.id });
+            }}
+            onSelectTag={(tagId) => updateSelectedRegion({ tagId })}
+            onCommentChange={(comment) => debouncedSaveComment(comment)}
+            onDelete={deleteSelectedRegion}
+            onClose={closeRegionEditor}
+          />
+        </Paper>
       )}
       <Stack style={{ backgroundColor: 'var(--mantine-color-blue-1)', height: '100%' }} gap={5} justify="flex-start">
 
@@ -834,42 +868,9 @@ export function ThinkAloudFooter({
                   </Button>
                 </Tooltip>
 
-                <Popover
-                  opened={!!selectedRegion}
-                  onChange={(opened) => {
-                    if (!opened) {
-                      debouncedSaveComment.flush();
-                      setDraftRegion(null);
-                      setSelectedRegionId(null);
-                    }
-                  }}
-                  position="top"
-                  withArrow
-                  shadow="md"
-                  trapFocus
-                  withinPortal
-                >
-                  <Popover.Target>
-                    <Text size="xs" c="dimmed">
-                      {timelineRegions.length > 0 ? `${timelineRegions.length} tagged` : 'None yet'}
-                    </Text>
-                  </Popover.Target>
-                  {selectedRegion && (
-                    <Popover.Dropdown>
-                      <TimelineTagEditor
-                        tags={timelineTags || []}
-                        region={selectedRegion}
-                        createTagCallback={async (t: Tag) => {
-                          await createTimelineTagCallback(t);
-                          updateSelectedRegion({ tagId: t.id });
-                        }}
-                        onSelectTag={(tagId) => updateSelectedRegion({ tagId })}
-                        onCommentChange={(comment) => debouncedSaveComment(comment)}
-                        onDelete={deleteSelectedRegion}
-                      />
-                    </Popover.Dropdown>
-                  )}
-                </Popover>
+                <Text size="xs" c="dimmed">
+                  {timelineRegions.length > 0 ? `${timelineRegions.length} tagged` : 'None yet'}
+                </Text>
               </Group>
             </Stack>
           </Group>

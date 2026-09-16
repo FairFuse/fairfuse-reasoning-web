@@ -115,6 +115,21 @@ describe('TimelineTagEditor', () => {
     expect(onDelete).toHaveBeenCalled();
   });
 
+  test('reports a close', () => {
+    const onClose = vi.fn();
+    renderEditor({ onClose });
+
+    fireEvent.click(screen.getByLabelText('Close timeline tag editor'));
+
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  test('omits the close button when no handler is given', () => {
+    renderEditor();
+
+    expect(screen.queryByLabelText('Close timeline tag editor')).toBeNull();
+  });
+
   test('tells the user when no timeline tags exist yet', () => {
     renderEditor({ tags: [] });
 

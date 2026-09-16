@@ -1,5 +1,5 @@
 import {
-  Button, ColorSwatch, Group, Stack, Text, Textarea, Tooltip,
+  Button, CloseButton, ColorSwatch, Group, Stack, Text, Textarea, Tooltip,
 } from '@mantine/core';
 import { IconTrash } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
@@ -19,6 +19,7 @@ export function TimelineTagEditor({
   onCommentChange,
   onDelete,
   createTagCallback,
+  onClose,
 }: {
   tags: Tag[];
   region: TimelineTagRegion;
@@ -26,6 +27,7 @@ export function TimelineTagEditor({
   onCommentChange: (comment: string) => void;
   onDelete: () => void;
   createTagCallback: (tag: Tag) => void | Promise<void>;
+  onClose?: () => void;
 }) {
   const [comment, setComment] = useState(region.comment);
 
@@ -36,9 +38,12 @@ export function TimelineTagEditor({
 
   return (
     <Stack gap="xs" style={{ width: 260 }}>
-      <Text size="xs" c="dimmed" ff="monospace">
-        {`${youtubeReadableDuration(region.start * 1000)} – ${youtubeReadableDuration(region.end * 1000)} (${region.duration.toFixed(2)}s)`}
-      </Text>
+      <Group justify="space-between" wrap="nowrap" gap="xs">
+        <Text size="xs" c="dimmed" ff="monospace">
+          {`${youtubeReadableDuration(region.start * 1000)} – ${youtubeReadableDuration(region.end * 1000)} (${region.duration.toFixed(2)}s)`}
+        </Text>
+        {onClose && <CloseButton size="sm" aria-label="Close timeline tag editor" onClick={onClose} />}
+      </Group>
 
       <Stack gap={2} style={{ maxHeight: 180, overflowY: 'auto' }}>
         {tags.length === 0
