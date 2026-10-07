@@ -1,7 +1,3 @@
-import { PREFIX } from "../../../utils/Prefix";
-
-export const CSV_URL = `${PREFIX}fairfuse/assets/data/help-or-hinder-scholarships-30-5.csv`;
-
 export const COL_W_NORMAL = 160;
 export const COL_W_COMPRESSED = 50;
 export const SVG_W = 100;

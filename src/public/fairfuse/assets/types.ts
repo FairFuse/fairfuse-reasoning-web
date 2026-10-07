@@ -1,3 +1,9 @@
+/** Parameters supplied by the study config for the `fairfuseApp` component. */
+export type FairFuseParameters = {
+  /** Path to the ranking CSV, relative to the public folder (no leading slash). */
+  CSV_URL: string;
+};
+
 export type Candidate = {
   id: number;
   name: string;

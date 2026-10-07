@@ -5,9 +5,8 @@ import {
   Autocomplete, Box, Button, Flex, SegmentedControl, Slider,
 } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
-import { CSV_URL } from './constants';
 import type {
-  Candidate, ColFairness, ProvenanceStateModel,
+  Candidate, ColFairness, FairFuseParameters, ProvenanceStateModel,
 } from './types';
 import {
   buildGroupArrays, formatColLabel, generateGroupColors, parseCsv, sortByColRank,
@@ -16,11 +15,13 @@ import { consensus, fairnessMetrics, similarityMetrics } from './fairRanking';
 import RankingView from './components/RankingView';
 import SimilarityHeatmapPair from './components/SimilarityHeatmapPair';
 import { AppNavBar } from '../../../components/interface/AppNavBar';
+import { PREFIX } from '../../../utils/Prefix';
 import { StimulusParams } from '../../../store/types';
 import { SharedStateProvider, useSharedState } from './SharedStateContext';
 import { RecordingStatus } from '../../../components/interface/RecordingStatus';
 
-function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
+function FairFuseApp({ parameters, setAnswer }: StimulusParams<FairFuseParameters, unknown>) {
+  const csvUrl = `${PREFIX}${parameters.CSV_URL}`;
   const {
     searchQuery, setSearchQuery, hoveredGroup, setHoveredGroup,
     arpThreshold, setArpThreshold,
@@ -61,15 +62,18 @@ function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
   const groupColors = useMemo(() => generateGroupColors(groupLabels), [groupLabels]);
 
   useEffect(() => {
-    fetch(CSV_URL)
+    let cancelled = false;
+    fetch(csvUrl)
       .then((r) => r.text())
       .then((text) => {
+        if (cancelled) return;
         const { candidates: c, rankingCols: rc, protectedAttr: pa } = parseCsv(text);
         setCandidates(c);
         setRankingCols(rc);
         setProtectedAttr(pa);
       });
-  }, []);
+    return () => { cancelled = true; };
+  }, [csvUrl]);
 
   useEffect(() => {
     const allCols = [...rankingCols, ...generatedRankings.map((gr) => gr.colName)];
@@ -445,7 +449,7 @@ function FairFuseApp({ setAnswer }: StimulusParams<unknown, unknown>) {
   );
 }
 
-export function FairFuseAppWrapper(props: StimulusParams<[], ProvenanceStateModel>) {
+export function FairFuseAppWrapper(props: StimulusParams<FairFuseParameters, ProvenanceStateModel>) {
   return (
     <SharedStateProvider provenanceState={props.provenanceState} setProvenance={props.setProvenance}>
       <FairFuseApp {...props} />

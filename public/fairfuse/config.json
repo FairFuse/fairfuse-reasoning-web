@@ -24,6 +24,9 @@
     "fairfuseApp": {
       "description": "Test description",
       "withSidebar": false,
+      "parameters": {
+        "CSV_URL": "fairfuse/assets/data/help-or-hinder-scholarships-30-5.csv"
+      },
       "type": "react-component",
       "path": "fairfuse/assets/FairFuseApp.tsx",
       "nextButtonLocation": "sidebar",
@@ -149,6 +152,32 @@
     },
     "taskFreeGeneration": {
       "baseComponent": "fairfuseApp",
+      "parameters": {
+        "CSV_URL": "fairfuse/assets/data/help-or-hinder-scholarships-30-5-gen-v2.csv"
+      },
+      "response": [
+        {
+          "id": "finalConsensusRanking",
+          "type": "shortText",
+          "prompt": "Generate a fair consensus ranking that is representative of all base rankings and does not over or under advantage race groups. Enter the name of your chosen consensus ranking (e.g. CON#1). Please verbalize your thoughts, process, and reasoning as you work throught this task.",
+          "location": "sidebar"
+        },
+        {
+          "id": "finalConsensusRankingVerbalizedConfirm",
+          "type": "checkbox",
+          "prompt": "Confirmation",
+          "options": ["I have verbalized my thoughts"],
+          "minSelections": 1,
+          "maxSelections": 1,
+          "location": "sidebar"
+        }
+      ]
+    },
+    "taskFreeGenerationFairWashing": {
+      "baseComponent": "fairfuseApp",
+      "parameters": {
+        "CSV_URL": "fairfuse/assets/data/fairwashing.csv"
+      },
       "response": [
         {
           "id": "finalConsensusRanking",
@@ -180,7 +209,8 @@
       "taskRankComparison",
       "taskCandidateDisagreement",
       "taskConsensusComparison",
-      "taskFreeGeneration"
+      "taskFreeGeneration",
+      "taskFreeGenerationFairWashing"
     ]
   }
 }
