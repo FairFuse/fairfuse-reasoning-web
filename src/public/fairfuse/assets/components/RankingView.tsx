@@ -75,6 +75,9 @@ function RankingView({
   const effectiveHoveredGroup = hoveredGroup ?? candidateHoveredGroup;
 
   useEffect(() => {
+    // Before the CSV resolves there are no base ranking columns, so syncing here would drop
+    // every restored base column and leave a replayed #FAIR_ column sitting at index 0.
+    if (initialCols.length === 0) return;
     setDisplayedCols((prev) => {
       const initialSet = new Set(initialCols);
       const kept = prev.filter((c) => initialSet.has(c));

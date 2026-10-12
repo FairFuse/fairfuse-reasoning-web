@@ -40,19 +40,30 @@ export function useSharedState() {
   return ctx;
 }
 
-export function SharedStateProvider({ provenanceState, setProvenance, children }: { provenanceState?: ProvenanceStateModel, setProvenance: (provenanceGraph: TrrackedProvenance) => void, children: React.ReactNode }) {
+/**
+ * @param provenanceState Analysis-mode replay. Populated only when a researcher scrubs the
+ *   Trrack timeline (`state.analysisProvState`), never during a live run.
+ * @param initialState Seeds the view with state carried over from an earlier component. Applied
+ *   once at mount via lazy initialisers, so it cannot fight live edits the way the replay effect
+ *   below would. `displayedCols` is deliberately not seeded here — RankingView prunes it against
+ *   the ranking columns, which are not loaded yet at mount; FairFuseApp restores it once the CSV
+ *   has arrived.
+ */
+export function SharedStateProvider({
+  provenanceState, initialState, setProvenance, children,
+}: { provenanceState?: ProvenanceStateModel, initialState?: Partial<ProvenanceStateModel>, setProvenance: (provenanceGraph: TrrackedProvenance) => void, children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
   const [hoveredGroupRankingView, setHoveredGroupRankingView] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [hoveredCol, setHoveredCol] = useState<string | null>(null);
-  const [arpThreshold, setArpThreshold] = useState<number>(0.5);
-  const [generatedRankings, setGeneratedRankings] = useState<GeneratedRanking[]>([]);
+  const [arpThreshold, setArpThreshold] = useState<number>(() => initialState?.arpThreshold ?? 0.5);
+  const [generatedRankings, setGeneratedRankings] = useState<GeneratedRanking[]>(() => initialState?.generatedRankings ?? []);
   const [similarityMatrix, setSimilarityMatrix] = useState<number[][] | null>(null);
   const [colFairnessMap, setColFairnessMap] = useState<Record<string, ColFairness>>({});
   const [displayedCols, setDisplayedCols] = useState<string[]>([]);
   const [hoveredHeatmapCols, setHoveredHeatmapCols] = useState<[string, string] | null>(null);
-  const [compressed, setCompressed] = useState<boolean>(false);
+  const [compressed, setCompressed] = useState<boolean>(() => initialState?.compressed ?? false);
 
   const provenance = useProvenance();
 

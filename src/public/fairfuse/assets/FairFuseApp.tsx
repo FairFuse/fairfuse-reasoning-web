@@ -6,8 +6,9 @@ import {
 } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
 import type {
-  Candidate, ColFairness, FairFuseParameters, ProvenanceStateModel,
+  Candidate, ColFairness, FairFuseParameters, FairFuseSnapshot, ProvenanceStateModel,
 } from './types';
+import { SNAPSHOT_KEY, highestConsensusIndex, useReplaySnapshot } from './useReplaySnapshot';
 import {
   buildGroupArrays, formatColLabel, generateGroupColors, parseCsv, sortByColRank,
 } from './utils';
@@ -20,7 +21,9 @@ import { StimulusParams } from '../../../store/types';
 import { SharedStateProvider, useSharedState } from './SharedStateContext';
 import { RecordingStatus } from '../../../components/interface/RecordingStatus';
 
-function FairFuseApp({ parameters, setAnswer }: StimulusParams<FairFuseParameters, unknown>) {
+function FairFuseApp({
+  parameters, setAnswer, replaySnapshot,
+}: StimulusParams<FairFuseParameters, unknown> & { replaySnapshot: FairFuseSnapshot | null }) {
   const csvUrl = `${PREFIX}${parameters.CSV_URL}`;
   const {
     searchQuery, setSearchQuery, hoveredGroup, setHoveredGroup,
@@ -28,7 +31,7 @@ function FairFuseApp({ parameters, setAnswer }: StimulusParams<FairFuseParameter
     generatedRankings, setGeneratedRankings,
     similarityMatrix, setSimilarityMatrix,
     colFairnessMap, setColFairnessMap,
-    displayedCols,
+    displayedCols, setDisplayedCols,
     hoveredHeatmapCols, setHoveredHeatmapCols,
     compressed, setCompressed,
   } = useSharedState();
@@ -36,22 +39,54 @@ function FairFuseApp({ parameters, setAnswer }: StimulusParams<FairFuseParameter
   const [rankingCols, setRankingCols] = useState<string[]>([]);
   const [protectedAttr, setProtectedAttr] = useState('Group');
   // const [searchQuery, setSearchQuery] = useState('');
-  const [maxArp, setMaxArp] = useState<number | null>(null);
+  // Seeded at mount rather than in an effect: the latch below fires as soon as a consensus
+  // column exists and would otherwise overwrite the restored arpThreshold with its own.
+  const [maxArp, setMaxArp] = useState<number | null>(() => replaySnapshot?.maxArp ?? null);
   const [generating, setGenerating] = useState(false);
   // const [hoveredGroup, setHoveredGroup] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const consensusCountRef = useRef(0);
+  const [selectedId, setSelectedId] = useState<number | null>(() => replaySnapshot?.selectedId ?? null);
+  // Derived from the restored column names rather than stored, so it can never disagree with
+  // them; useRef honours its argument on the first render only.
+  const consensusCountRef = useRef(highestConsensusIndex(replaySnapshot?.generatedRankings ?? []));
 
   const handleSelect = useCallback((id: number) => {
     setSelectedId((prev) => (prev === id ? null : id));
   }, []);
 
+  // Column membership and order are restored here, not in SharedStateProvider: RankingView
+  // prunes displayedCols against the ranking columns, which do not exist until the CSV lands.
+  const colsRestoredRef = useRef(false);
+  useEffect(() => {
+    if (colsRestoredRef.current || rankingCols.length === 0) return;
+    colsRestoredRef.current = true;
+    const restored = replaySnapshot?.displayedCols;
+    if (!restored?.length) return;
+    const available = [...rankingCols, ...generatedRankings.map((gr) => gr.colName)];
+    const kept = restored.filter((c) => available.includes(c));
+    setDisplayedCols([...kept, ...available.filter((c) => !kept.includes(c))]);
+  }, [rankingCols, generatedRankings, replaySnapshot, setDisplayedCols]);
+
+  // One effect owns the whole answer: `status` is replaced on every setAnswer call, so two
+  // effects writing it would race.
   useEffect(() => {
     const candidate = candidates.find((c) => c.id === selectedId) ?? null;
-    if (candidate) {
-      setAnswer({ status: true, answers: { candidateName: candidate?.name ?? '' } });
-    }
-  }, [selectedId, candidates, setAnswer]);
+    const snapshot: FairFuseSnapshot = {
+      csvUrl,
+      generatedRankings,
+      displayedCols,
+      compressed,
+      arpThreshold,
+      maxArp,
+      selectedId,
+    };
+    setAnswer({
+      status: true,
+      answers: { candidateName: candidate?.name ?? '', [SNAPSHOT_KEY]: snapshot },
+    });
+  }, [
+    selectedId, candidates, setAnswer, csvUrl,
+    generatedRankings, displayedCols, compressed, arpThreshold, maxArp,
+  ]);
 
   const groupLabels = useMemo(() => {
     if (candidates.length === 0) return [];
@@ -450,9 +485,29 @@ function FairFuseApp({ parameters, setAnswer }: StimulusParams<FairFuseParameter
 }
 
 export function FairFuseAppWrapper(props: StimulusParams<FairFuseParameters, ProvenanceStateModel>) {
+  const csvUrl = `${PREFIX}${props.parameters.CSV_URL}`;
+  const replaySnapshot = useReplaySnapshot(props.answers, props.parameters.REPLAY_FROM, csvUrl);
+
+  // The snapshot seeds the view through `initialState`; `provenanceState` stays wired to the
+  // analysis-mode replay channel so scrubbing the Trrack timeline still works on these screens.
+  const initialState = useMemo(
+    () => (replaySnapshot
+      ? {
+        arpThreshold: replaySnapshot.arpThreshold,
+        generatedRankings: replaySnapshot.generatedRankings,
+        compressed: replaySnapshot.compressed,
+      }
+      : undefined),
+    [replaySnapshot],
+  );
+
   return (
-    <SharedStateProvider provenanceState={props.provenanceState} setProvenance={props.setProvenance}>
-      <FairFuseApp {...props} />
+    <SharedStateProvider
+      provenanceState={props.provenanceState}
+      initialState={initialState}
+      setProvenance={props.setProvenance}
+    >
+      <FairFuseApp {...props} replaySnapshot={replaySnapshot} />
     </SharedStateProvider>
   );
 }

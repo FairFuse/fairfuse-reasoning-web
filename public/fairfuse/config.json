@@ -150,6 +150,17 @@
         }
       ]
     },
+    "datasetChange": {
+      "type": "markdown",
+      "path": "fairfuse/assets/data-change.md",
+      "showTitleBar": false,
+      "withSidebar": false,
+      "response": [],
+      "style": {
+        "maxWidth": "800px",
+        "margin": "200px auto"
+      }
+    },
     "taskFreeGeneration": {
       "baseComponent": "fairfuseApp",
       "parameters": {
@@ -159,7 +170,7 @@
         {
           "id": "finalConsensusRanking",
           "type": "shortText",
-          "prompt": "Generate a fair consensus ranking that is representative of all base rankings and does not over or under advantage race groups. Enter the name of your chosen consensus ranking (e.g. CON#1). Please verbalize your thoughts, process, and reasoning as you work throught this task.",
+          "prompt": "Generate a fair consensus ranking that is \n - representative of all base rankings and\n - does not over or under advantage race groups. \nTips:\n Use the slider near the generation button to increase or decrease the level of fairness before you generate a ranking.\n To modify a generated ranking, you can drag and drop candidate cards.\n You can swap the position of a ranking by dragging the named header on the top of each ranking and placing it near the consensus ranking.\n You may pin generated rankings to compare multiple generated rankings.\n**Enter the name of your chosen consensus ranking (e.g. CON#1)**. Please verbalize your thoughts, process, and reasoning as you work throught this task.",
           "location": "sidebar"
         },
         {
@@ -182,11 +193,87 @@
         {
           "id": "finalConsensusRanking",
           "type": "shortText",
-          "prompt": "Generate a fair consensus ranking that is representative of all base rankings and does not over or under advantage race groups. Enter the name of your chosen consensus ranking (e.g. CON#1). Please verbalize your thoughts, process, and reasoning as you work throught this task.",
+          "prompt": "Generate a fair consensus ranking that is \n - representative of all base rankings and\n - does not over or under advantage race groups.\n\n**Tips:**\n - After generating a consensus, use the slider near the generation button to increase or decrease the level of fairness before you generate a fair cosnensus ranking.\n - To modify a generated ranking, you can drag and drop candidate cards.\n - You can swap the position of a ranking by dragging the named header on the top of each ranking and placing it near the consensus ranking.\n - You may pin generated rankings to compare multiple generated rankings.\n\n**When you are done, enter the name of your chosen consensus ranking below (e.g. Consensus 1)**. Please verbalize your thoughts, process, and reasoning as you work throught this task.",
+          "placeholder": "e.g. Consensus 1",
           "location": "sidebar"
         },
         {
           "id": "finalConsensusRankingVerbalizedConfirm",
+          "type": "checkbox",
+          "prompt": "Confirmation",
+          "options": ["I have verbalized my thoughts"],
+          "minSelections": 1,
+          "maxSelections": 1,
+          "location": "sidebar"
+        }
+      ]
+    },
+    "reflectCompare": {
+      "baseComponent": "fairfuseApp",
+      "parameters": {
+        "CSV_URL": "fairfuse/assets/data/fairwashing.csv",
+        "REPLAY_FROM": "taskFreeGenerationFairWashing"
+      },
+      "instruction": "Please review the consensus ranking you generated/selected and explain how it compare with the three base rankings? Please verbalize your thoughts as you look it over.",
+      "response": [
+        {
+          "id": "reflectCompareVerbalizedConfirm",
+          "type": "checkbox",
+          "prompt": "Confirmation",
+          "options": ["I have verbalized my thoughts"],
+          "minSelections": 1,
+          "maxSelections": 1,
+          "location": "sidebar"
+        }
+      ]
+    },
+    "reflectDisplacement": {
+      "baseComponent": "fairfuseApp",
+      "parameters": {
+        "CSV_URL": "fairfuse/assets/data/fairwashing.csv",
+        "REPLAY_FROM": "reflectCompare"
+      },
+      "instruction": "Please review the consensus ranking you just generated/selected. \n - Which candidates, if any, moved substantially compared with the base rankings?\n - How well do you think fairness has been achieved in this ranking? \n - Would you make make any changes about the ranking now? \n\nPlease verbalize your thoughts.",
+      "response": [
+        {
+          "id": "reflectDisplacementVerbalizedConfirm",
+          "type": "checkbox",
+          "prompt": "Confirmation",
+          "options": ["I have verbalized my thoughts"],
+          "minSelections": 1,
+          "maxSelections": 1,
+          "location": "sidebar"
+        }
+      ]
+    },
+    "reflectJustify": {
+      "baseComponent": "fairfuseApp",
+      "parameters": {
+        "CSV_URL": "fairfuse/assets/data/fairwashing.csv",
+        "REPLAY_FROM": "reflectDisplacement"
+      },
+      "response": [
+        {
+          "id": "reflectJustify",
+          "type": "longText",
+          "prompt": "Why did you accept this ranking?",
+          "location": "sidebar"
+        },
+        {
+          "id": "reflectWouldRerank",
+          "type": "radio",
+          "prompt": "Having reviewed it, would you change anything about this ranking now?",
+          "options": ["Yes", "No"],
+          "location": "sidebar"
+        },
+        {
+          "id": "reflectRerankDescribe",
+          "type": "longText",
+          "prompt": "If so, make the change in the ranking view and describe what you changed and why. If not, explain why not.",
+          "location": "sidebar"
+        },
+        {
+          "id": "reflectJustifyVerbalizedConfirm",
           "type": "checkbox",
           "prompt": "Confirmation",
           "options": ["I have verbalized my thoughts"],
@@ -209,8 +296,9 @@
       "taskRankComparison",
       "taskCandidateDisagreement",
       "taskConsensusComparison",
-      "taskFreeGeneration",
-      "taskFreeGenerationFairWashing"
+      "datasetChange",
+      "taskFreeGenerationFairWashing",
+      "reflectDisplacement"
     ]
   }
 }
