@@ -35,6 +35,35 @@
     }
   },
   "components": {
+    "consent": {
+      "type": "markdown",
+      "path": "fairfuse/assets/consent.md",
+      "style": { "maxWidth": "800px" },
+      "nextButtonText": "Next",
+      "withSidebar": true,
+      "showTitleBar": false,
+      "response": [
+        {
+          "id": "consentRecording",
+          "type": "checkbox",
+          "prompt": "Recording consent",
+          "options": [
+            "I agree to think aloud and to have my screen and voice recorded during this study"
+          ],
+          "minSelections": 1,
+          "maxSelections": 1,
+          "location": "belowStimulus"
+        },
+        {
+          "id": "accept",
+          "type": "radio",
+          "prompt": "Do you consent to participate in this study and wish to continue?",
+          "options": ["Decline", "Accept"],
+          "requiredValue": "Accept",
+          "location": "belowStimulus"
+        }
+      ]
+    },
     "introduction": {
       "type": "markdown",
       "path": "fairfuse/assets/introduction.md",
@@ -287,6 +316,7 @@
   "sequence": {
     "order": "fixed",
     "components": [
+      "consent",
       "introduction",
       "$screen-recording.components.screenRecordingPermission",
       "taskRace",
