@@ -1,0 +1,65 @@
+_candidate_id,_candidate_name,*region,#R1
+0,Massachusetts Institute of Technology,North East,0
+1,Yale University,North East,1
+2,Stanford University,West,2
+3,Harvard University,North East,3
+4,Dartmouth College,North East,4
+5,Columbia University,North East,5
+6,Brown University,North East,6
+7,Rice University,South West,7
+8,Vanderbilt University,South East,8
+9,Princeton University,North East,9
+10,University of Pennsylvania,North East,10
+11,Duke University,South East,11
+12,Georgetown University,North East,12
+13,Harvey Mudd College,West,13
+14,Washington University in St Louis,Mid West,14
+15,Ponoma College,West,15
+16,Northwestern University,Mid West,16
+17,Carnegie Mellon University,North East,17
+18,California Institute of Technology,West,18
+19,"University of California, Los Angeles",West,19
+20,Cornell University,North East,20
+21,Johns Hopkins University,South East,21
+22,University of Michigan-Ann Arbor,Mid West,22
+23,Claremont McKenna College,West,23
+24,University of Chicago,Mid West,24
+25,University of Notre Dame,Mid West,25
+26,University of Virginia (Main campus),South East,26
+27,University of Southern California,West,27
+28,Williams College,North East,28
+29,Georgia Institute of Technology,South East,29
+30,Swarthmore College,North East,30
+31,Bowdoin College,North East,31
+32,University of Florida,South East,32
+33,Emory University,South East,33
+34,University of North Carolina at Chapel Hill,South East,34
+35,Davidson College,South East,35
+36,Barnard College,North East,36
+37,Washington and Lee University,South East,37
+38,Boston University,North East,38
+39,New York University,North East,39
+40,Northeastern University,North East,40
+41,"University of California, Berkeley",West,41
+42,Boston College,North East,42
+43,Wellesley College,North East,43
+44,University of Texas at Austin,South West,44
+45,Middlebury College,North East,45
+46,Tufts University,North East,46
+47,Wake Forest University,South East,47
+48,Amherst College,North East,48
+49,University of Illinois at Urbana-Champaign,Mid West,49
+50,Florida State University,South East,50
+51,University of Georgia,South East,51
+52,University of Miami,South East,52
+53,Hamilton College,North East,53
+54,"University of California, Irvine",West,54
+55,University of Wisconsin-Madison,Mid West,55
+56,Lehigh University,North East,56
+57,Texas A&M University,South West,57
+58,Villanova University,North East,58
+59,Haverford College,North East,59
+60,Virginia Tech,South East,60
+61,University of Washington,West,61
+62,"University of California, Davis",West,62
+63,Wesleyan University,North East,63

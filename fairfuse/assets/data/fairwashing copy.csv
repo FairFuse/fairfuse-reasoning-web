@@ -1,0 +1,31 @@
+*race,parental_level_of_education,lunch,test_preparation_course,_candidate_id,_candidate_name,#math,#reading,#writing
+Native,college,standard,completed,0,Maggie Mccullough,20,7,3
+Native,school,free/reduced,completed,1,Cloe Lester,11,26,17
+Native,bachelor,free/reduced,none,2,Jasiah Nash,26,11,21
+Black,master's,free/reduced,none,3,Ty Peck,18,20,11
+Native,bachelor,standard,completed,4,Memphis Acosta,0,24,28
+Native,associate,standard,none,5,Taylor Landry,12,19,15
+Black,college,standard,none,6,Jaqueline Macias,9,9,25
+White,associate,standard,none,7,Sophie Castro,22,22,12
+Black,college,standard,none,8,Miriam Orozco,17,29,29
+Native,school,free/reduced,none,9,Princess Barry,6,8,2
+Pacific Islander,associate,standard,none,10,Johnny Kennedy,5,13,19
+White,associate,standard,completed,11,Dustin Johnston,29,28,23
+Pacific Islander,college,free/reduced,none,12,Levi Glover,13,3,22
+Asian,high school,standard,none,13,Brennen Hart,23,23,16
+Native,high school,free/reduced,none,14,Jaden Dorsey,2,10,7
+Black,master's,free/reduced,completed,15,Kayla Brewer,8,15,10
+Black,associate,standard,none,16,Presley Lin,15,17,0
+White,associate,free/reduced,completed,17,Tess Doyle,7,18,13
+Asian,school,standard,none,18,Darrell Tate,4,0,26
+Pacific Islander,high school,standard,none,19,Nick Porter,16,27,1
+Asian,high school,standard,none,20,Hadassah Valdez,24,1,6
+Black,associate,standard,completed,21,Leon Bauer,27,2,4
+Pacific Islander,school,free/reduced,none,22,Cheyenne Wade,19,12,27
+Black,school,standard,none,23,Silas Bowen,21,25,8
+Pacific Islander,college,standard,completed,24,Joel Terry,14,14,18
+Pacific Islander,high school,free/reduced,none,25,Lance Ramsey,1,4,24
+Asian,associate,free/reduced,none,26,Micheal Mcclain,10,5,20
+Pacific Islander,college,standard,completed,27,Emilee Larsen,25,6,5
+Native,college,standard,none,28,Yael Gordon,28,21,14
+Pacific Islander,high school,standard,none,29,Alina Grant,3,16,9

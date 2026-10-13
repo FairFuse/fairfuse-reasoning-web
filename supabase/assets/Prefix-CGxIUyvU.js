@@ -1,0 +1,1 @@
+var e=`/fairfuse-reasoning-web/supabase/`;export{e as t};

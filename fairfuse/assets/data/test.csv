@@ -1,0 +1,61 @@
+*race,parental_level_of_education,lunch,test_preparation_course,_candidate_id,_candidate_name,#R1,#R2,#R3,#R4
+Native,college,standard,completed,0,Maggie Mccullough,48,48,50,50
+Native,school,free/reduced,completed,1,Cloe Lester,11,11,48,48
+Native,bachelor,free/reduced,none,2,Jasiah Nash,17,17,20,11
+Black,master's,free/reduced,none,3,Ty Peck,32,32,11,17
+Native,bachelor,standard,completed,4,Memphis Acosta,38,38,17,32
+Native,associate,standard,none,5,Taylor Landry,7,7,32,38
+Black,college,standard,none,6,Jaqueline Macias,59,59,38,7
+White,associate,standard,none,7,Sophie Castro,15,15,7,54
+Black,college,standard,none,8,Miriam Orozco,16,16,59,59
+Native,school,free/reduced,none,9,Princess Barry,41,41,15,20
+White,associate,standard,none,10,Johnny Kennedy,58,58,16,21
+White,associate,standard,completed,11,Dustin Johnston,46,46,41,16
+White,college,free/reduced,none,12,Levi Glover,21,21,58,46
+Black,high school,standard,none,13,Brennen Hart,13,13,46,41
+Native,high school,free/reduced,none,14,Jaden Dorsey,52,52,21,58
+Black,master's,free/reduced,completed,15,Kayla Brewer,26,47,13,13
+Black,associate,standard,none,16,Presley Lin,50,26,52,52
+White,associate,free/reduced,completed,17,Tess Doyle,18,50,26,26
+Black,school,standard,none,18,Darrell Tate,45,18,18,14
+White,high school,standard,none,19,Nick Porter,14,45,45,9
+Asian,high school,standard,none,20,Hadassah Valdez,28,14,14,1
+Black,associate,standard,completed,21,Leon Bauer,49,28,28,2
+White,school,free/reduced,none,22,Cheyenne Wade,9,49,49,18
+Black,school,standard,none,23,Silas Bowen,5,9,9,49
+White,college,standard,completed,24,Joel Terry,1,5,5,4
+White,high school,free/reduced,none,25,Lance Ramsey,2,1,1,28
+Black,associate,free/reduced,none,26,Micheal Mcclain,37,2,2,5
+White,college,standard,completed,27,Emilee Larsen,39,37,37,37
+Native,college,standard,none,28,Yael Gordon,4,39,39,55
+White,high school,standard,none,29,Alina Grant,55,4,4,39
+White,college,standard,none,30,Agustin Holt,22,55,55,45
+Black,high school,free/reduced,none,31,Ryland West,23,22,27,23
+White,college,free/reduced,completed,32,Yaritza Fox,35,23,23,35
+White,high school,free/reduced,none,33,Riya Middleton,53,35,35,53
+Black,master's,free/reduced,completed,34,Hassan Foley,0,53,53,0
+White,college,free/reduced,none,35,Maci Huber,34,0,0,27
+Black,associate,free/reduced,none,36,Phoenix Fuentes,56,34,34,34
+Native,associate,standard,none,37,Delaney Moon,40,56,56,56
+White,associate,standard,none,38,Esmeralda Cooley,20,40,40,40
+Native,college,standard,completed,39,Areli Marks,47,20,25,25
+Native,associate,free/reduced,none,40,Raul Strong,25,25,57,57
+Black,high school,standard,none,41,Rebecca Morse,57,57,36,36
+Black,school,free/reduced,completed,42,Laurel Brewer,36,36,3,3
+White,high school,free/reduced,completed,43,Rosemary Phelps,3,3,6,6
+White,school,standard,none,44,Noemi Reilly,6,6,51,51
+Native,school,standard,none,45,Lucia Sparks,51,51,22,22
+Black,school,standard,completed,46,Tony Stark,27,27,33,33
+Pacific Islander,college,standard,none,47,Hayden Perry,33,33,30,30
+White,school,standard,none,48,Dario Sheppard,30,30,43,43
+Native,associate,standard,none,49,Anahi Aguilar,43,43,44,44
+Asian,bachelor,free/reduced,completed,50,Oliver King,44,44,19,19
+Native,bachelor,standard,completed,51,Alexandra Beltran,19,19,12,12
+Black,school,standard,none,52,Harold Cannon,12,12,42,42
+Black,school,free/reduced,none,53,Nadia Blanchard,42,42,54,31
+Black,bachelor,standard,none,54,Katherine Fox,54,54,31,15
+Native,high school,standard,completed,55,Jaylee Walter,31,31,8,8
+Native,school,standard,completed,56,Perla Henson,8,8,29,29
+Native,college,standard,completed,57,Valery Diaz,29,29,47,24
+Black,high school,standard,none,58,Adelyn Stark,24,24,24,10
+White,school,standard,none,59,Presley Wolf,10,10,10,47
